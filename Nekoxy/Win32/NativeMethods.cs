@@ -39,9 +39,9 @@ namespace Nekoxy.Win32
     {
         [MarshalAs(UnmanagedType.U4)]
         public uint dwAccessType;
-        [MarshalAs(UnmanagedType.LPStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string lpszProxy;
-        [MarshalAs(UnmanagedType.LPStr)]
+        [MarshalAs(UnmanagedType.LPWStr)]
         public string lpszProxyBypass;
     }
 

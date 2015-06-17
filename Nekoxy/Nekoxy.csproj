@@ -54,6 +54,7 @@
     <Compile Include="TransparentProxyLogic.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Win32\NativeMethods.cs" />
+    <Compile Include="WinInetUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Nekoxy.nuspec" />
