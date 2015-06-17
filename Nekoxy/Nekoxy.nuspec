@@ -6,12 +6,12 @@
 		<version>$version$</version>
 		<authors>$author$</authors>
 		<owners>$author$</owners>
-		<licenseUrl>http://example.com/LICENSE.txt</licenseUrl>
-		<projectUrl>http://example.com</projectUrl>
+		<licenseUrl>https://github.com/veigr/Nekoxy/blob/master/LICENSE</licenseUrl>
+		<projectUrl>https://github.com/veigr/Nekoxy</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>$description$</description>
 		<language>ja-JP</language>
-		<tags>KanColle HTTP Proxy</tags>
+		<tags>HTTP Proxy</tags>
 		<frameworkAssemblies>
 			<frameworkAssembly assemblyName="System" targetFramework="" />
 		</frameworkAssemblies>
