@@ -12,10 +12,10 @@ namespace Nekoxy.Win32
 
         [DllImport("wininet.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern IntPtr InternetOpen(
-            [MarshalAs(UnmanagedType.LPWStr)]string lpszAgent,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpszAgent,
             INTERNET_OPEN_TYPE dwAccessType,
-            [MarshalAs(UnmanagedType.LPWStr)]string lpszProxyName,
-            [MarshalAs(UnmanagedType.LPWStr)]string lpszProxyBypass,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpszProxyName,
+            [MarshalAs(UnmanagedType.LPWStr)] string lpszProxyBypass,
             int dwFlags);
 
         [DllImport("wininet.dll", SetLastError = true)]
@@ -39,8 +39,10 @@ namespace Nekoxy.Win32
     {
         [MarshalAs(UnmanagedType.U4)]
         public uint dwAccessType;
+
         [MarshalAs(UnmanagedType.LPStr)]
         public string lpszProxy;
+
         [MarshalAs(UnmanagedType.LPStr)]
         public string lpszProxyBypass;
     }
@@ -70,6 +72,7 @@ namespace Nekoxy.Win32
         PROXY_TYPE_AUTO_PROXY_URL = 0x00000004,
         PROXY_TYPE_AUTO_DETECT = 0x00000008,
     }
+
     internal enum INTERNET_PER_CONN_OptionEnum
     {
         INTERNET_PER_CONN_FLAGS = 1,
@@ -113,5 +116,6 @@ namespace Nekoxy.Win32
         [FieldOffset(0)]
         public System.Runtime.InteropServices.ComTypes.FILETIME ftValue;
     }
+
     // ReSharper restore InconsistentNaming
 }

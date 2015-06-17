@@ -52,7 +52,7 @@ namespace Nekoxy
                 return this.RequestLine.URI.StartsWith("/")
                     ? this.RequestLine.URI
                     : new Uri(this.RequestLine.URI).PathAndQuery;
-            } 
+            }
         }
 
         /// <summary>

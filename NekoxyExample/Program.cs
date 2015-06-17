@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Nekoxy;
 
 namespace NekoxyExample
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             HttpProxy.Startup(12345);
             //HttpProxy.UpstreamProxyHost = "127.0.0.1";
