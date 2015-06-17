@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+	<metadata>
+		<id>$id$</id>
+		<title>$title$</title>
+		<version>$version$</version>
+		<authors>$author$</authors>
+		<owners>$author$</owners>
+		<licenseUrl>http://example.com/LICENSE.txt</licenseUrl>
+		<projectUrl>http://example.com</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>$description$</description>
+		<language>ja-JP</language>
+		<tags>KanColle HTTP Proxy</tags>
+		<frameworkAssemblies>
+			<frameworkAssembly assemblyName="System" targetFramework="" />
+		</frameworkAssemblies>
+		<references>
+			<reference file="Nekoxy.dll" />
+			<reference file="TrotiNet.dll" />
+		</references>
+	</metadata>
+	<files>
+		<file src="DependentAssemblies\TrotiNet.dll" target="lib\net45"/>
+		<file src="DependentAssemblies\TrotiNet.xml" target="lib\net45"/>
+	</files>
+</package>

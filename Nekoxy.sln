@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nekoxy", "Nekoxy\Nekoxy.csproj", "{92DFA8A8-A110-4692-862D-7F0C229794B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NekoxyExample", "NekoxyExample\NekoxyExample.csproj", "{04AAD626-EF27-41BF-96CC-6F1B97A93FA0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{429CA306-9264-4959-9949-E6616E5AFAAE}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E8A0F3A9-7971-4489-9F13-F8E9D9B6D1FB}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92DFA8A8-A110-4692-862D-7F0C229794B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92DFA8A8-A110-4692-862D-7F0C229794B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92DFA8A8-A110-4692-862D-7F0C229794B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92DFA8A8-A110-4692-862D-7F0C229794B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04AAD626-EF27-41BF-96CC-6F1B97A93FA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04AAD626-EF27-41BF-96CC-6F1B97A93FA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04AAD626-EF27-41BF-96CC-6F1B97A93FA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04AAD626-EF27-41BF-96CC-6F1B97A93FA0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

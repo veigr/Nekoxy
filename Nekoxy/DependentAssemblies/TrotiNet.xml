@@ -1,0 +1,1059 @@
+<?xml version="1.0"?>
+
+<doc>
+  <assembly>
+    <name>TrotiNet</name>
+  </assembly>
+  <members>
+    <member name="T:TrotiNet.ProxyDummyEcho">
+      <summary>
+        Dummy proxy that simply echoes back what it gets from the browser
+      </summary>
+      Used for TCP testing.
+    </member>
+    <member name="T:TrotiNet.AbstractProxyLogic">
+      <summary>
+        Abstract class for all HTTP proxy logic implementations
+      </summary>
+      <remarks>
+        One instance of a derived class will be created per client connection.
+      </remarks>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.DestinationPort">
+      <summary>
+        Port to which <c>SocketBP</c> is currently connected
+      </summary>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.DestinationHostName">
+      <summary>
+        Name of the host to which <c>SocketBP</c> is currently
+        connected
+      </summary>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.RelayHttpProxyHost">
+      <summary>
+        Set to a proxy host name if our proxy is not connecting to
+        the internet, but to another proxy instead
+      </summary>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.RelayHttpProxyOverride">
+      <summary>
+        Set to a proxy bypass specification if our proxy is not connecting
+        to the internet, but to another proxy instead
+      </summary>
+      <remarks>
+        XXX Bypass not implemented
+      </remarks>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.RelayHttpProxyPort">
+      <summary>
+        Set to a proxy port if our proxy is not connecting to
+        the internet, but to another proxy instead
+      </summary>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.SocketBP">
+      <summary>
+        Socket dedicated to the (client) browser-proxy communication
+      </summary>
+    </member>
+    <member name="F:TrotiNet.AbstractProxyLogic.SocketPS">
+      <summary>
+        Socket dedicated to the proxy-server (remote) communication
+      </summary>
+    </member>
+    <member name="M:TrotiNet.AbstractProxyLogic.#ctor(TrotiNet.HttpSocket)">
+      <summary>
+        Common constructor for proxies; one proxy instance is created
+        per client connection
+      </summary>
+      <param name="socketBP">Client socket</param>
+    </member>
+    <member name="M:TrotiNet.AbstractProxyLogic.Connect(System.String,System.Int32)">
+      <summary>
+        If necessary, connect the remote <c>SocketPS</c> socket
+        to the given host and port
+      </summary>
+      <param name="hostname">Remote host name</param>
+      <param name="port">Remote port</param>
+      <remarks>
+        If SocketPS is already connected to the right host and port,
+        the socket is reused as is.
+      </remarks>
+    </member>
+    <member
+      name="M:TrotiNet.AbstractProxyLogic.ParseDestinationHostAndPort(TrotiNet.HttpRequestLine,TrotiNet.HttpHeaders,System.Int32@)">
+      <summary>
+        Extract the host and port to use from either the HTTP request
+        line, or the HTTP headers; update the request line to remove
+        the hostname and port
+      </summary>
+      <param name="hrl">
+        The HTTP request line; the URI will be updated to remove the
+        host name and port number
+      </param>
+      <param name="hh_rq">The HTTP request headers</param>
+      <param name="port">
+        When this method returns, contains the request port
+      </param>
+      <remarks>
+        May modify the URI of <c>hrl</c>
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.AbstractProxyLogic.LogicLoop">
+      <summary>
+        Entry point to HTTP request handling
+      </summary>
+    </member>
+    <member name="M:TrotiNet.AbstractProxyLogic.SetRelayProxy(TrotiNet.SystemProxySettings)">
+      <summary>
+        In case of a proxy chain, set the next proxy to contact
+      </summary>
+      <remarks>
+        <c>ProxyOverride</c> is ignored.
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.AbstractProxyLogic.TunnelBP(System.Byte[],System.UInt32,System.UInt32)">
+      <summary>
+        Message packet handler for tunneling data from PS to BP
+      </summary>
+    </member>
+    <member name="M:TrotiNet.AbstractProxyLogic.TunnelPS(System.Byte[],System.UInt32,System.UInt32)">
+      <summary>
+        Message packet handler for tunneling data from BP to PS
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyDummyEcho.#ctor(TrotiNet.HttpSocket,System.Boolean)">
+      <summary>
+        Instantiate a dummy proxy that echoes what it reads on the
+        socket back to it
+      </summary>
+      <param name="socketBP">Client socket</param>
+      <param name="PrintEchoPrefix">
+        If true, the proxy will add an
+        "Echo" prefix for each message
+      </param>
+    </member>
+    <member name="M:TrotiNet.ProxyDummyEcho.CreateEchoProxy(TrotiNet.HttpSocket)">
+      <summary>
+        Static constructor with <c>PrintEchoPrefix = true</c>
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyDummyEcho.CreateMirrorProxy(TrotiNet.HttpSocket)">
+      <summary>
+        Static constructor with <c>PrintEchoPrefix = false</c>
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyDummyEcho.LogicLoop">
+      <summary>
+        Dummy logic loop, for test purposes
+      </summary>
+    </member>
+    <member name="T:TrotiNet.SystemProxySettings">
+      <summary>
+        Container class for proxy settings
+      </summary>
+    </member>
+    <member name="F:TrotiNet.SystemProxySettings.ProxyOverride">
+      <summary>
+        Correspond to the system/IE advanced option "Exceptions" (do not
+        use proxy server for these address prefixes). For example: *.local
+      </summary>
+      <remarks>
+        If the option "Bypass proxy server for local addresses" is
+        checked, ";&lt;local&gt;" is appended to ProxyOverride.
+      </remarks>
+    </member>
+    <member name="F:TrotiNet.SystemProxySettings.ProxyServer">
+      <summary>
+        Correspond to the system/IE options "Address" and "Port", and the
+        advanced option "Servers".
+      </summary>
+      <remarks>
+        - If the proxy is the same for all protocols, use:
+        localhost:2000
+        - If the proxy depends on the TCP service, use this syntax:
+        ftp=ip1:2002;http=ip2:2000;https=ip3:2001;socks=ip4:2003
+      </remarks>
+    </member>
+    <member name="F:TrotiNet.SystemProxySettings.AutoConfigURL">
+      <summary>
+        Correspond to the system/IE advanced option "Use Automatic
+        Configuration Script."
+      </summary>
+    </member>
+    <member name="M:TrotiNet.SystemProxySettings.#ctor(System.Boolean,System.String,System.String,System.String)">
+      <summary>
+        Constructor
+      </summary>
+    </member>
+    <member name="M:TrotiNet.SystemProxySettings.#ctor(System.Boolean,System.String,System.String)">
+      <summary>
+        Constructor with default (empty) auto config URL
+      </summary>
+    </member>
+    <member name="M:TrotiNet.SystemProxySettings.GetHttpSpecificProxy(System.String@,System.Int32@)">
+      <summary>
+        Retrieve the HTTP-specific proxy settings
+      </summary>
+    </member>
+    <member name="M:TrotiNet.SystemProxySettings.GetHttpsSpecificProxy(System.String@,System.Int32@)">
+      <summary>
+        Retrieve the HTTP-specific proxy settings
+      </summary>
+    </member>
+    <member
+      name="M:TrotiNet.SystemProxySettings.GetProtocolSpecificProxy(System.String,System.Int32,System.String@,System.Int32@)">
+      <summary>
+        Extract protocol-specific proxy settings
+      </summary>
+      <param name="protocol">
+        One of "ftp=", "socks=", "http=", "https="; it must end with a
+        '=' sign.
+      </param>
+      <param name="default_port">
+        The default port for the protocol, e.g. 80 for HTTP
+      </param>
+      <param name="proxy_host">
+        Will be set to the proxy host name
+      </param>
+      <param name="proxy_port">
+        Will be set to the proxy port
+      </param>
+    </member>
+    <member name="M:TrotiNet.SystemProxySettings.SetHttpSpecificProxy(System.String,System.Int32)">
+      <summary>
+        Replace the proxy for the HTTP protocol; proxy settings for
+        the other protocols are left unchanged
+      </summary>
+      <remarks>
+        ProxyEnable is not modified either, and must be updated separately.
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.SystemProxySettings.ToString">
+      <summary>
+        Human-readable representation
+      </summary>
+    </member>
+    <member name="P:TrotiNet.SystemProxySettings.ProxyEnable">
+      <summary>
+        System/IE option "Use a proxy server for your
+        LAN (These settings will not apply to dial-up or VPN connections)."
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpException">
+      <summary>
+        Exception base class
+      </summary>
+    </member>
+    <member name="T:TrotiNet.IoBroken">
+      <summary>
+        Thrown to report a Read/Write failure on the HttpSocket
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpProtocolBroken">
+      <summary>
+        Thrown when the HTTP data received is not valid
+      </summary>
+    </member>
+    <member name="T:TrotiNet.RuntimeException">
+      <summary>
+        Run-time library exception
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpHeaders">
+      <summary>
+        Container for a parsed copy of some headers relevant to the proxy,
+        along with an unparsed copy of all the headers with their order
+        unchanged
+      </summary>
+    </member>
+    <member name="F:TrotiNet.HttpHeaders.ParsedHeaders">
+      <summary>
+        Map { header name } -> { header parsed value }
+      </summary>
+      <remarks>
+        Keys are stored in lower-case characters.
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.HttpHeaders.#ctor">
+      <summary>
+        Instantiate empty HTTP headers
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpHeaders.#ctor(TrotiNet.HttpSocket)">
+      <summary>
+        Read and parse HTTP headers from a connected socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpHeaders.#ctor(System.Collections.Generic.Dictionary{System.String,System.String})">
+      <summary>
+        Initialize a new instance with the provided set of
+        HTTP headers
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpHeaders.ParseIntValue(System.String)">
+      <summary>
+        Parse a HTTP header that is expected to contain a decimal value
+      </summary>
+      <param name="HeaderName">
+        The header name, in lower-case
+      </param>
+    </member>
+    <member name="M:TrotiNet.HttpHeaders.ParseMultipleStringValues(System.String)">
+      <summary>
+        Split a HTTP header value along the commas, and trim the spaces
+      </summary>
+      <param name="HeaderName">
+        The header name, in lower-case
+      </param>
+    </member>
+    <member name="M:TrotiNet.HttpHeaders.ParseStringValue(System.String)">
+      <summary>
+        Retrieve a header value and trim the spaces
+      </summary>
+      <param name="HeaderName">
+        The header name, in lower-case
+      </param>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.CacheControl">
+      <summary>
+        Cache-Control header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.Connection">
+      <summary>
+        Connection header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.ContentEncoding">
+      <summary>
+        Content-Encoding header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.ContentLength">
+      <summary>
+        Content-Length header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.Expires">
+      <summary>
+        Expires header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.Pragma">
+      <summary>
+        Pragma header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.Headers">
+      <summary>
+        Map { header name } -> { header string value }
+      </summary>
+      <remarks>
+        Keys are stored in lower-case characters.
+        Values have their spaces and trailing newlines trimmed.
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.HeadersInOrder">
+      <summary>
+        HTTP headers as received (newline markers may have been fixed)
+      </summary>
+      <remarks>
+        If RemoveHeader has been called, then HeadersInOrder will be
+        modified. In particular, the header ordering may change.
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.Host">
+      <summary>
+        Host header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.ProxyConnection">
+      <summary>
+        Proxy-Connection header value
+      </summary>
+      <remarks>
+        Proxy-Connection is not officially part of HTTP/1.1
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.Referer">
+      <summary>
+        Referer (sic) header value
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpHeaders.TransferEncoding">
+      <summary>
+        Transfer-Encoding header value
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpRequestLine">
+      <summary>
+        Container for a HTTP request line,
+        i.e. the first line of a HTTP request
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpRequestLine.ToString">
+      <summary>
+        Return a string representation of the instance
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpRequestLine.Method">
+      <summary>
+        HTTP method (e.g. "GET", "POST", etc.)
+      </summary>
+      <remarks>
+        This field contains what has been received on the socket, and
+        therefore can contain anything, including methods not mentioned
+        in the HTTP protocol.
+        Method is case-sensitive (RFC 2616, section 5.1.1).
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpRequestLine.ProtocolVersion">
+      <summary>
+        The version of the HTTP protocol.
+      </summary>
+      <remarks>
+        For example, "1.1" means "HTTP/1.1"
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpRequestLine.URI">
+      <summary>
+        Target URI as seen in the TCP stream
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpRequestLine.RequestLine">
+      <summary>
+        Original request line as seen in the TCP stream
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpStatusLine">
+      <summary>
+        Container for a HTTP status line,
+        i.e. the first line of a HTTP response
+      </summary>
+    </member>
+    <member name="F:TrotiNet.HttpStatusLine.StatusLine">
+      <summary>
+        Original status line as seen in the TCP stream
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpStatusLine.ToString">
+      <summary>
+        Return a string representation of the instance
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpStatusLine.ProtocolVersion">
+      <summary>
+        The version of the HTTP protocol.
+      </summary>
+      <remarks>
+        For example, "1.1" means "HTTP/1.1"
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpStatusLine.StatusCode">
+      <summary>
+        The parsed HTTP status code
+      </summary>
+      <remarks>
+        Integer value between 100 and 599 included
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.Log.Get">
+      <summary>
+        Create a class logger
+      </summary>
+    </member>
+    <member name="T:TrotiNet.BaseProxyLogic">
+      <summary>
+        Implement the full HTTP proxy logic for one browser connection
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.#ctor(TrotiNet.HttpSocket)">
+      <summary>
+        Base proxy constructor (an arbitrary intermediate step between
+        AbstractProxyLogic, and ProxyLogic)
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestLine">
+      <summary>
+        The request line of the HTTP request currently being handled
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestHeaders">
+      <summary>
+        The request headers of the HTTP request currently being handled
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.ResponseStatusLine">
+      <summary>
+        The response status line of the HTTP response received
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.ResponseHeaders">
+      <summary>
+        The response header line of the HTTP response received
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.State">
+      <summary>
+        Request processing pipeline state
+      </summary>
+      <seealso cref="T:TrotiNet.BaseProxyLogic.RequestProcessingState" />
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.AbortRequest">
+      <summary>
+        Pipeline step: close the connections and stop
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.LogicLoop">
+      <summary>
+        Implement a base proxy logic. The procedure is called for each
+        request as long as it returns true.
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.OnReceiveRequest">
+      <summary>
+        Called when RequestLine and RequestHeaders are set
+      </summary>
+      <remarks>
+        May be used to override State.NextStep
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.OnReceiveResponse">
+      <summary>
+        Called when ResponseStatusLine and ResponseHeaders are set
+      </summary>
+      <remarks>
+        May be used to override State.NextStep
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.ReadRequest">
+      <summary>
+        Pipeline step: read the HTTP request from the client, schedule
+        the next step to be <c>SendRequest</c>, and call
+        <c>OnReceiveRequest</c>
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.HandleConnect">
+      <summary>
+        A specific case for the CONNECT command,
+        connect both ends blindly (will work for HTTPS, SSH and others)
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.SendRequest">
+      <summary>
+        Pipeline step: tunnel the request from the client to the remove
+        server, and schedule the next step to be <c>ReadResponse</c>
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.ReadResponse">
+      <summary>
+        Pipeline step: read the HTTP response from the local client,
+        schedule the next step to be <c>SendResponse</c>, and call
+        <c>OnReceiveResponse</c>
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.SendResponse">
+      <summary>
+        Pipeline: tunnel the HTTP response from the remote server to the
+        local client, and end the request processing
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.SendResponseStatusAndHeaders">
+      <summary>
+        Send the response status line and headers from the proxy to
+        the client
+      </summary>
+    </member>
+    <member name="T:TrotiNet.BaseProxyLogic.ProcessingStep">
+      <summary>
+        Continuation delegate used in the request processing pipeline
+      </summary>
+    </member>
+    <member name="T:TrotiNet.BaseProxyLogic.RequestProcessingState">
+      <summary>
+        Maintains the internal state for the request currently being
+        processed
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.bPersistConnectionBP">
+      <summary>
+        Whether the BP connection should be kept alive after handling
+        the current request, or closed
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.bPersistConnectionPS">
+      <summary>
+        Whether the PS connection should be kept alive after handling
+        the current request, or closed
+      </summary>
+      <remarks>
+        If set to false, then <c>bPersistConnectionBP</c> will also be
+        set to false, because if no Content-Length has been specified,
+        the browser would keep on waiting (BP kept-alive, but PS
+        closed).
+      </remarks>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.bRequestHasMessage">
+      <summary>
+        Whether the request contains a message
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.RequestMessageLength">
+      <summary>
+        Length of the request message, if any
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.bRequestMessageChunked">
+      <summary>
+        Whether the request message (if any) is being transmitted
+        in chunks
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.bUseDefaultPersistBP">
+      <summary>
+        Set to true if no instruction was given in the request headers
+        about whether the BP connection should persist
+      </summary>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.OnResponseMessagePacket">
+      <summary>
+        When set to not null, will be called every time a raw fragment
+        of a non-empty response message body is received; note that the
+        packet handler becomes responsible for sending the response
+        (whatever it is) to SocketBP
+      </summary>
+      <remarks>
+        The message body might be compressed (or otherwise modified),
+        as specified by the Content-Encoding header. Applications
+        should use <c>ProxyLogic.GetResponseMessageStream</c> to
+        decompress (whenever necessary) the message stream.
+      </remarks>
+    </member>
+    <member name="F:TrotiNet.BaseProxyLogic.RequestProcessingState.NextStep">
+      <summary>
+        Points to the next processing step; must be updated after
+        each processing step, setting it to null will stop the
+        processing
+      </summary>
+    </member>
+    <member name="M:TrotiNet.BaseProxyLogic.RequestProcessingState.#ctor(TrotiNet.BaseProxyLogic.ProcessingStep)">
+      <summary>
+        Processing state constructor
+      </summary>
+      <param name="StartStep">
+        First step of the request processing pipeline
+      </param>
+    </member>
+    <member name="T:TrotiNet.ProxyLogic">
+      <summary>
+        Wrapper around BaseProxyLogic that adds various utility functions
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.#ctor(TrotiNet.HttpSocket)">
+      <summary>
+        Instantiate a transparent proxy
+      </summary>
+      <param name="socketBP">Client browser-proxy socket</param>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.CreateProxy(TrotiNet.HttpSocket)">
+      <summary>
+        Static constructor
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.ChangeRequestURI(System.String)">
+      <summary>
+        Change the request URI; also change the 'Host' request header,
+        when necessary
+      </summary>
+      <remarks>
+        If required, this function should be called from
+        <c>OnReceiveRequest</c>.
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.GetChunkedContent">
+      <summary>
+        Download the chunked file and return the byte array
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.GetNonChunkedContent">
+      <summary>
+        Get a file with a known file size (i.e., not chunked).
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.GetContent">
+      <summary>
+        If this method is called on a response, either the custom
+        response pipeline or the 302 redirect MUST be used.
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.GetResponseMessageStream(System.Byte[])">
+      <summary>
+        Interpret a message with respect to its content encoding
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.GetResponseMessageStream(System.IO.Stream)">
+      <summary>
+        Interpret a message with respect to its content encoding
+      </summary>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.CompressResponse(System.Byte[])">
+      <summary>
+        Compress a byte array based on the content encoding header
+      </summary>
+      <param name="output">The content to be compressed</param>
+      <returns>The compressed content</returns>
+    </member>
+    <member name="M:TrotiNet.ProxyLogic.EncodeStringResponse(System.String,System.Text.Encoding)">
+      <summary>
+        Get an encoded byte array for a given string
+      </summary>
+    </member>
+    <member name="T:TrotiNet.SystemProxy">
+      <summary>
+        Utility class for setting the system proxy (i.e. the options you
+        get from the 'Internet Options' panel)
+      </summary>
+    </member>
+    <member name="M:TrotiNet.SystemProxy.RefreshSettings">
+      <summary>
+        Notify WinInet applications that the proxy settings have changed
+      </summary>
+    </member>
+    <member name="M:TrotiNet.SystemProxy.SetProxy(System.Boolean,System.String,System.String)">
+      <summary>
+        Set the system proxy, as per the 'Internet Options' panel
+      </summary>
+      <returns>True if the operation was successful</returns>
+    </member>
+    <member name="T:TrotiNet.TcpServer">
+      <summary>
+        Implementation of a TCP/IP server
+      </summary>
+    </member>
+    <member name="F:TrotiNet.TcpServer.CleanTimer">
+      <summary>
+        Timer that calls CheckSockets regularly
+      </summary>
+    </member>
+    <member name="F:TrotiNet.TcpServer.ConnectedSockets">
+      <summary>
+        Set of open sockets, indexed by socket identifier
+      </summary>
+    </member>
+    <member name="F:TrotiNet.TcpServer.LastClientId">
+      <summary>
+        Incremented at every client connection
+      </summary>
+    </member>
+    <member name="F:TrotiNet.TcpServer.LocalPort">
+      <summary>
+        Port used for local browser-proxy communication
+      </summary>
+    </member>
+    <member name="M:TrotiNet.TcpServer.#ctor(System.Int32,System.Boolean)">
+      <summary>
+        Initialize, but do not start, a multi-threaded TCP server
+        listening for localhost connections only
+      </summary>
+      <param name="localPort">TCP port to listen to</param>
+      <param name="bUseIPv6">
+        If true, listen on ::1 only. If false, listen on 127.0.0.1 only.
+      </param>
+    </member>
+    <member name="M:TrotiNet.TcpServer.AcceptCallback(System.IAsyncResult)">
+      <summary>
+        Callback method for accepting new connections
+      </summary>
+    </member>
+    <member name="M:TrotiNet.TcpServer.CheckSockets(System.Object)">
+      <summary>
+        Close broken sockets
+      </summary>
+      <remarks>
+        This function is called regularly to clean up the list of
+        connected sockets.
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.TcpServer.CloseSocket(TrotiNet.HttpSocket)">
+      <summary>
+        Remove the socket contained in the given state object
+        from the connected array list and hash table, then close the
+        socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.TcpServer.Start(TrotiNet.TcpServer.OnNewClient)">
+      <summary>
+        Spawn a thread that listens to incoming connections
+      </summary>
+    </member>
+    <member name="M:TrotiNet.TcpServer.StartListening(System.Net.Sockets.Socket@)">
+      <summary>
+        Open a listener socket and wait for connections
+      </summary>
+    </member>
+    <member name="M:TrotiNet.TcpServer.Stop">
+      <summary>
+        Stop the listening threads and close the client sockets
+      </summary>
+    </member>
+    <member name="P:TrotiNet.TcpServer.BindAddress">
+      <summary>
+        If not null, specify which address the listening socket should
+        be bound to. If null, it will default to the loopback address.
+      </summary>
+    </member>
+    <member name="P:TrotiNet.TcpServer.InitListenException">
+      <summary>
+        Set if an error has occured while the server was initializing
+        the listening thread
+      </summary>
+    </member>
+    <member name="P:TrotiNet.TcpServer.InitListenFinished">
+      <summary>
+        Set when the listening thread has finished its initialization
+        (either successfully, or an exception has been thrown)
+      </summary>
+      <seealso cref="P:TrotiNet.TcpServer.InitListenException" />
+      <seealso cref="P:TrotiNet.TcpServer.IsListening" />
+    </member>
+    <member name="P:TrotiNet.TcpServer.IsListening">
+      <summary>
+        Set to true if the listening thread is currently listening
+        for incoming connections
+      </summary>
+    </member>
+    <member name="P:TrotiNet.TcpServer.IsShuttingDown">
+      <summary>
+        Set to true if the server is about to shut down
+      </summary>
+    </member>
+    <member name="T:TrotiNet.TcpServer.OnNewClient">
+      <summary>
+        Called every time a connection is accepted from the browser
+        by the proxy. Must return the instance that will handle the
+        communication for the new connection.
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpSocket">
+      <summary>
+        Communication state between two hosts
+      </summary>
+    </member>
+    <member name="F:TrotiNet.HttpSocket.id">
+      <summary>
+        Socket UID.
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.#ctor(System.Net.Sockets.Socket)">
+      <summary>
+        Wrap a Socket instance into a HttpSocket instance
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.Dispose">
+      <summary>
+        Close the wrapped socket
+      </summary>
+    </member>
+    <member name="F:TrotiNet.HttpSocket.LowLevelSocket">
+      <summary>
+        Returns the wrapped socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.CloseSocket">
+      <summary>
+        Close the internal socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.IsSocketDead">
+      <summary>
+        Returns true if the socket has been closed, or has become
+        unresponsive
+      </summary>
+    </member>
+    <member name="F:TrotiNet.HttpSocket.UseLeftOverBytes">
+      <summary>
+        True if ReadAsciiLine may have loaded bytes in the buffer
+        that ReadRaw should use
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.ReadAsciiLine">
+      <summary>
+        Reads a LF-delimited (or CRLF-delimited) line from the socket,
+        and returns it (without the trailing newline character)
+      </summary>
+      Content is expected to be in ASCII 8-bit (UTF-8 also works).
+    </member>
+    <member name="M:TrotiNet.HttpSocket.ReadBinary">
+      <summary>
+        Read buffered binary data
+      </summary>
+      <remarks>
+        A read operation (for instance, ReadAsciiLine) may have loaded
+        the buffer with some data which ended up not being used.
+        If that's the case, then ReadBinary uses it (ReadRaw does not).
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.ReadRaw">
+      <summary>
+        Read a block of data from the socket; unread data that was in the
+        buffer is dropped
+      </summary>
+      <remarks>
+        BufferPosition is reset. If there were unread data in the buffer,
+        it's lost.
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(TrotiNet.HttpSocket)">
+      <summary>
+        Transfer data from this socket to the destination socket
+        until this socket closes
+      </summary>
+      <returns>The number of bytes sent</returns>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(TrotiNet.HttpSocket.MessagePacketHandler)">
+      <summary>
+        Transfer data from the socket to the specified packet handler
+        until the socket closes
+      </summary>
+      <returns>The number of bytes sent</returns>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(TrotiNet.HttpSocket,System.UInt32)">
+      <summary>
+        Read <c>nb_bytes</c> bytes from the socket,
+        and send it to the destination socket
+      </summary>
+      <returns>The number of bytes sent</returns>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(TrotiNet.HttpSocket.MessagePacketHandler,System.UInt32)">
+      <summary>
+        Read <c>nb_bytes</c> bytes from the socket,
+        and send it to the specified packet handler
+      </summary>
+      <returns>The number of bytes sent</returns>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(TrotiNet.HttpSocket.MessagePacketHandler,System.Byte[])">
+      <summary>
+        Sends a buffer to the specified packet handler
+      </summary>
+      <returns>The number of bytes sent</returns>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(System.Byte[]@)">
+      <summary>
+        Fills the buffer with an unknown amount of data from the socket
+      </summary>
+      <param name="buffer">data from the socket</param>
+      <returns>total bytes</returns>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelDataTo(System.Byte[],System.UInt32)">
+      <summary>
+        Write data from a buffer to the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.WriteAsciiLine(System.String)">
+      <summary>
+        Write an ASCII string, a CR character, and a LF character to the
+        socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.WriteBinary(System.Byte[])">
+      <summary>
+        Write an array of bytes to the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.WriteBinary(System.Byte[],System.UInt32)">
+      <summary>
+        Write the first <c>nb_bytes</c> of <c>b</c> to the
+        socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.WriteBinary(System.Byte[],System.UInt32,System.UInt32)">
+      <summary>
+        Write <c>nb_bytes</c> of <c>b</c>, starting at offset
+        <c>offset</c> to the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.Send302">
+      <summary>
+        Send a HTTP 302 redirection over the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.Send400">
+      <summary>
+        Send a HTTP 400 error over the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.Send403">
+      <summary>
+        Send a HTTP 403 error over the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.Send404">
+      <summary>
+        Send a HTTP 404 error over the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.Send501">
+      <summary>
+        Send a HTTP 501 error over the socket
+      </summary>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelChunkedDataTo(TrotiNet.HttpSocket)">
+      <summary>
+        Tunnel a HTTP-chunked blob of data
+      </summary>
+      <param name="dest">The destination socket</param>
+      <remarks>
+        The tunneling stops when the last chunk, identified by a
+        size of 0, arrives. The optional trailing entities are also
+        transmitted (but otherwise ignored).
+      </remarks>
+    </member>
+    <member name="M:TrotiNet.HttpSocket.TunnelChunkedDataTo(TrotiNet.HttpSocket.MessagePacketHandler)">
+      <summary>
+        Tunnel a HTTP-chunked blob of data to the specified packet handler
+      </summary>
+      <remarks>
+        The tunneling stops when the last chunk, identified by a
+        size of 0, arrives. The optional trailing entities are also
+        transmitted (but otherwise ignored).
+      </remarks>
+    </member>
+    <member name="P:TrotiNet.HttpSocket.KeepAlive">
+      <summary>
+        Set the TCP Keep Alive option on the socket
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpSocket.AvailableData">
+      <summary>
+        How many bytes of data are available in the receive buffer
+        (starting at offset 0)
+      </summary>
+    </member>
+    <member name="P:TrotiNet.HttpSocket.Buffer">
+      <summary>
+        Receive buffer
+      </summary>
+    </member>
+    <member name="T:TrotiNet.HttpSocket.MessagePacketHandler">
+      <summary>
+        Socket-level event handler for HTTP message packets
+      </summary>
+      <param name="packet">
+        Buffer containing the message packet, or null if there is
+        no more packets in the current message
+      </param>
+      <param name="offset">
+        Start offset of the packet in the buffer
+      </param>
+      <param name="nb_bytes">
+        Fragment size in bytes, or 0 if there is no more packets
+      </param>
+      <remarks>
+        Messages are fragmented because of the limited buffer size, or
+        whenever the remote server is sending the message using the
+        chunked transfer encoding.
+      </remarks>
+    </member>
+  </members>
+</doc>
