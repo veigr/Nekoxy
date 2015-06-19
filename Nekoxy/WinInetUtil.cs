@@ -35,7 +35,9 @@ namespace Nekoxy
         /// <param name="listeningPort">ポート</param>
         internal static void SetProxyInProcessByUrlmon(int listeningPort)
         {
-            SetProxyInProcess(GetProxyConfig(listeningPort), "local");
+            SetProxyInProcess(
+                GetProxyConfig(listeningPort),
+                WinHttpGetIEProxyConfigForCurrentUser().ProxyBypass ?? "local");
         }
 
         /// <summary>
