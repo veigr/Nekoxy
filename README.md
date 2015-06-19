@@ -8,11 +8,14 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
 
 * 指定ポートでローカルプロキシを1つ起動
 * 起動時にプロセス内プロキシ設定を適用
+    * HTTPプロトコルのみに適用する
+    * システムのプロキシ設定(インターネットオプションの設定)がある場合、それをアップストリームプロキシに適用 (設定されている全てのプロトコルに適用される)
 * レスポンスデータをクライアントに送信後、AfterSessionComplete イベントを発行
 * AfterSessionComplete イベントにてリクエスト/レスポンスデータを読み取り可能
 * Transfer-Encoding: chunked なレスポンスデータは、TrotiNet を用いて予めデコードされる
 * Content-Encoding 指定のレスポンスデータは、TrotiNet を用いて予めデコードされる
 * アップストリームプロキシを設定可能
+    * システムのプロキシ設定より優先して適用される
 
 ### 制限事項
 
@@ -26,9 +29,9 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
       例えば 127.0.0.1 で待ち受けている別のローカルプロキシに対して接続したい場合、localhost を指定するとまず ::1 へ接続試行し、その後 127.0.0.1 へアクセスするという挙動となり、動作が遅くなってしまうことが有ります。  
       これを回避するには、UpstreamProxyHostにホスト名ではなくIPアドレスで指定するといった手段が考えられます。
 
-### 利用
+### 取得
 
-* [NuGet Gallery](https://www.nuget.org/)から取得可能です。
+* [NuGet Gallery](https://www.nuget.org/packages/Nekoxy/)から取得可能です。
 
 ### 依存ライブラリ
 
@@ -46,7 +49,26 @@ log4netはApache License, Version 2.0([https://www.apache.org/licenses/LICENSE-2
 * 利用しているTrotiNetのソースは、TrotiNet-Srcフォルダに添付されています。
 * GNU GENERAL PUBLIC LICENSE Version 3 および GNU LESSER GENERAL PUBLIC LICENSE Version 3 のライセンス文書のコピーは、TrotiNet-Srcフォルダに添付されています。
 
-#### Nekoxy のライセンス
+### Nekoxy のライセンス
 
 * MIT License  
 参照 : LICENSE ファイル
+
+### 更新履歴
+
+#### 1.1.0
+
+* Start() メソッドで isSetIEProxySettings が true 時、アップストリームプロキシに WinHTTPGetIEProxyConfigForCurrentUser() で取得したシステム設定を用いるよう変更。  
+UpstreamProxyHost プロパティはこの設定よりも優先される。
+* システム設定にプロキシバイパス設定がある場合、そちらを利用するよう変更。
+
+#### 1.0.3
+
+* Start() 時に Listening 開始を待つよう修正
+* IsInListening プロパティ公開
+* WinInetUtil 公開
+
+
+#### 1.0.1
+
+* 初回リリース
