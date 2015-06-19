@@ -10,6 +10,7 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
 * 起動時にプロセス内プロキシ設定を適用
     * HTTPプロトコルのみに適用する
     * システムのプロキシ設定(インターネットオプションの設定)がある場合、それをアップストリームプロキシに適用 (設定されている全てのプロトコルに適用される)
+    * ただし Nekoxy で待ち受けているプロキシが設定されている場合はアップストリームプロキシに適用しない
 * レスポンスデータをクライアントに送信後、AfterSessionComplete イベントを発行
 * AfterSessionComplete イベントにてリクエスト/レスポンスデータを読み取り可能
 * Transfer-Encoding: chunked なレスポンスデータは、TrotiNet を用いて予めデコードされる
@@ -55,6 +56,11 @@ log4netはApache License, Version 2.0([https://www.apache.org/licenses/LICENSE-2
 参照 : LICENSE ファイル
 
 ### 更新履歴
+
+#### 1.1.1
+
+* システムのプロキシ設定に Nekoxy で待ち受けているプロキシが設定されている場合、アップストリームプロキシに適用しないよう修正  
+(アップストリームプロキシ設定に明示的に指定した場合は適用される)
 
 #### 1.1.0
 

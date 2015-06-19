@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -31,6 +32,12 @@ namespace Nekoxy
             return match.Success
                 ? match.Groups[1].Value
                 : string.Empty;
+        }
+
+        public static bool IsLoopbackHost(this string hostName)
+        {
+            var addresses = Dns.GetHostEntry(hostName).AddressList;
+            return addresses.Any(IPAddress.IsLoopback);
         }
 
         private static readonly Encoding defaultEncoding = Encoding.ASCII;

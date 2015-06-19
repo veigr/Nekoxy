@@ -71,8 +71,14 @@ namespace Nekoxy
             if (isSetIEProxySettings)
             {
                 WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
-                TransparentProxyLogic.DefaultUpstreamProxyHost = WinInetUtil.GetSystemHttpProxyHost();
-                TransparentProxyLogic.DefaultUpstreamProxyPort = WinInetUtil.GetSystemHttpProxyPort();
+                var systemProxyHost = WinInetUtil.GetSystemHttpProxyHost();
+                var systemProxyPort = WinInetUtil.GetSystemHttpProxyPort();
+                if (systemProxyPort != listeningPort || systemProxyHost.IsLoopbackHost())
+                {
+                    //自身が指定されていた場合上流には指定しない
+                    TransparentProxyLogic.DefaultUpstreamProxyHost = systemProxyHost;
+                    TransparentProxyLogic.DefaultUpstreamProxyPort = systemProxyPort;
+                }
             }
 
             server.InitListenFinished.WaitOne();
