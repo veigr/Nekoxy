@@ -29,6 +29,16 @@ namespace Nekoxy
         public static int UpstreamProxyPort { get; set; }
 
         /// <summary>
+        /// UpstreamProxyHostがnullの場合に用いられるデフォルトホスト。
+        /// </summary>
+        public static string DefaultUpstreamProxyHost { get; set; }
+
+        /// <summary>
+        /// UpstreamProxyHostがnullの場合に用いられるデフォルトポート番号。
+        /// </summary>
+        public static int DefaultUpstreamProxyPort { get; set; }
+
+        /// <summary>
         /// TcpServerがインスタンスを生成する際に使用するメソッド。
         /// 接続(AcceptCallback)の都度呼び出され、インスタンスが生成される。
         /// </summary>
@@ -46,8 +56,8 @@ namespace Nekoxy
         /// <param name="clientSocket">Browser-Proxy間Socket。SocketBP。</param>
         public TransparentProxyLogic(HttpSocket clientSocket) : base(clientSocket)
         {
-            this.RelayHttpProxyHost = UpstreamProxyHost;
-            this.RelayHttpProxyPort = UpstreamProxyPort;
+            this.RelayHttpProxyHost = UpstreamProxyHost ?? DefaultUpstreamProxyHost;
+            this.RelayHttpProxyPort = UpstreamProxyHost != null ? UpstreamProxyPort : DefaultUpstreamProxyPort;
         }
 
         /// <summary>

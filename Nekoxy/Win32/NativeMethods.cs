@@ -9,36 +9,39 @@ namespace Nekoxy.Win32
     // ReSharper disable InconsistentNaming
     internal static class NativeMethods
     {
-
-        [DllImport("wininet.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        public static extern IntPtr InternetOpen(
-            [MarshalAs(UnmanagedType.LPWStr)] string lpszAgent,
-            INTERNET_OPEN_TYPE dwAccessType,
-            [MarshalAs(UnmanagedType.LPWStr)] string lpszProxyName,
-            [MarshalAs(UnmanagedType.LPWStr)] string lpszProxyBypass,
-            int dwFlags);
-
-        [DllImport("wininet.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool InternetCloseHandle(IntPtr hInternet);
-
-        [DllImport("WinInet.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool InternetSetOption(
-            IntPtr hInternet,
-            INTERNET_OPTION dwOption,
-            IntPtr lpBuffer,
-            int dwBufferLength);
-
         [DllImport("urlmon.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        internal static extern int UrlMkSetSessionOption(uint dwOption, INTERNET_PROXY_INFO pBuffer, uint dwBufferLength, uint dwReserved);
+        internal static extern int UrlMkSetSessionOption(
+            INTERNET_OPTION dwOption,
+            INTERNET_PROXY_INFO pBuffer,
+            uint dwBufferLength,
+            uint dwReserved);
+
+        [DllImport("winhttp.dll", SetLastError = true)]
+        internal static extern bool WinHttpGetIEProxyConfigForCurrentUser(ref WinHttpCurrentUserIEProxyConfig pProxyConfig);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct WinHttpCurrentUserIEProxyConfig
+    {
+        [MarshalAs(UnmanagedType.Bool)]
+        public bool AutoDetect;
+
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string AutoConfigUrl;
+
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string Proxy;
+
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string ProxyBypass;
+
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal class INTERNET_PROXY_INFO
     {
         [MarshalAs(UnmanagedType.U4)]
-        public uint dwAccessType;
+        public INTERNET_OPEN_TYPE dwAccessType;
 
         [MarshalAs(UnmanagedType.LPStr)]
         public string lpszProxy;
@@ -64,15 +67,6 @@ namespace Nekoxy.Win32
 
     }
 
-    [Flags]
-    internal enum INTERNET_OPTION_PER_CONN_FLAGS
-    {
-        PROXY_TYPE_DIRECT = 0x00000001,
-        PROXY_TYPE_PROXY = 0x00000002,
-        PROXY_TYPE_AUTO_PROXY_URL = 0x00000004,
-        PROXY_TYPE_AUTO_DETECT = 0x00000008,
-    }
-
     internal enum INTERNET_PER_CONN_OptionEnum
     {
         INTERNET_PER_CONN_FLAGS = 1,
@@ -86,36 +80,5 @@ namespace Nekoxy.Win32
         INTERNET_PER_CONN_AUTOCONFIG_LAST_DETECT_URL = 9,
         INTERNET_PER_CONN_FLAGS_UI = 10,
     }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    internal struct INTERNET_PER_CONN_OPTION_LIST
-    {
-        public int dwSize;
-        public IntPtr pszConnection;
-        public int dwOptionCount;
-        public int dwOptionError;
-        public IntPtr pOptions;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct INTERNET_PER_CONN_OPTION
-    {
-        public INTERNET_PER_CONN_OptionEnum dwOption;
-        public INTERNET_PER_CONN_OPTION_OptionUnion Value;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    internal struct INTERNET_PER_CONN_OPTION_OptionUnion
-    {
-        [FieldOffset(0)]
-        public int dwValue;
-
-        [FieldOffset(0)]
-        public IntPtr pszValue;
-
-        [FieldOffset(0)]
-        public System.Runtime.InteropServices.ComTypes.FILETIME ftValue;
-    }
-
     // ReSharper restore InconsistentNaming
 }

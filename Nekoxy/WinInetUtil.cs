@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -22,12 +21,12 @@ namespace Nekoxy
         {
             var proxyInfo = new INTERNET_PROXY_INFO
             {
-                dwAccessType = (uint)INTERNET_OPEN_TYPE.INTERNET_OPEN_TYPE_PROXY,
+                dwAccessType = INTERNET_OPEN_TYPE.INTERNET_OPEN_TYPE_PROXY,
                 lpszProxy = proxy,
                 lpszProxyBypass = proxyBypass,
             };
             var dwBufferLength = (uint)Marshal.SizeOf(proxyInfo);
-            NativeMethods.UrlMkSetSessionOption((uint)INTERNET_OPTION.INTERNET_OPTION_PROXY, proxyInfo, dwBufferLength, 0U);
+            NativeMethods.UrlMkSetSessionOption(INTERNET_OPTION.INTERNET_OPTION_PROXY, proxyInfo, dwBufferLength, 0U);
         }
 
         /// <summary>
@@ -36,62 +35,80 @@ namespace Nekoxy
         /// <param name="listeningPort">ポート</param>
         internal static void SetProxyInProcessByUrlmon(int listeningPort)
         {
-            SetProxyInProcess("http=localhost:" + listeningPort, "local");
+            SetProxyInProcess(GetProxyConfig(listeningPort), "local");
         }
 
         /// <summary>
-        /// WinInet.dllでプロセス内プロキシ設定を適用。
-        /// 作ったけど面倒くさい感じなので未使用に。
+        /// システムプロキシに設定されたHTTPプロキシのホスト名を取得。
         /// </summary>
-        /// <param name="listeningPort">ポート</param>
-        internal static void SetProxyInProcessByWinInet(int listeningPort)
+        /// <returns>システムHTTPプロキシのホスト名。設定されていない場合はnullを返す。</returns>
+        internal static string GetSystemHttpProxyHost()
         {
-            var hInternet = NativeMethods.InternetOpen(null, INTERNET_OPEN_TYPE.INTERNET_OPEN_TYPE_PRECONFIG, null, null, 0);
+            var proxy = GetSystemHttpProxy();
+            return proxy != null
+                ? GetSystemHttpProxy().Split(':')[0]
+                : null;
+        }
 
-            var options = new INTERNET_PER_CONN_OPTION[3];
+        /// <summary>
+        /// システムプロキシに設定されたHTTPプロキシのポート番号を取得。
+        /// </summary>
+        /// <returns>システムHTTPプロキシのポート番号。設定されていない場合は0を返す。</returns>
+        internal static int GetSystemHttpProxyPort()
+        {
+            var proxy = GetSystemHttpProxy();
+            return proxy != null
+                ? int.Parse(GetSystemHttpProxy().Split(':')[1])
+                : 0;
+        }
 
-            options[0].dwOption = INTERNET_PER_CONN_OptionEnum.INTERNET_PER_CONN_FLAGS_UI;
-            options[0].Value.dwValue = (int)(INTERNET_OPTION_PER_CONN_FLAGS.PROXY_TYPE_DIRECT | INTERNET_OPTION_PER_CONN_FLAGS.PROXY_TYPE_PROXY);
+        /// <summary>
+        /// システムプロキシに設定されたHTTPプロキシ設定を取得。
+        /// </summary>
+        /// <returns>システムHTTPプロキシ設定。設定されていない場合はnullを返す。</returns>
+        private static string GetSystemHttpProxy()
+        {
+            var proxyConfig = WinHttpGetIEProxyConfigForCurrentUser();
+            if (proxyConfig.Proxy == null) return null;
 
-            options[1].dwOption = INTERNET_PER_CONN_OptionEnum.INTERNET_PER_CONN_PROXY_SERVER;
-            options[1].Value.pszValue = Marshal.StringToHGlobalAuto("http=localhost:" + listeningPort);
+            var configs = proxyConfig.Proxy.Split(';');
+            if (!proxyConfig.Proxy.Contains("=")) return configs[0];
 
-            options[2].dwOption = INTERNET_PER_CONN_OptionEnum.INTERNET_PER_CONN_PROXY_BYPASS;
-            options[2].Value.pszValue = Marshal.StringToHGlobalAuto("local");
+            return configs.Any(x => x.StartsWith("http="))
+                ? new string(configs.First(x => x.StartsWith("http=")).Replace("http=", "").ToArray())
+                : null;
+        }
 
+        /// <summary>
+        /// システムプロキシのhttpプロキシ設定をNekoxyに置換したプロキシ設定を取得。
+        /// </summary>
+        /// <param name="listeningPort">Listeningポート</param>
+        /// <returns>編集後プロキシ設定</returns>
+        private static string GetProxyConfig(int listeningPort)
+        {
+            var localProxy = "http=localhost:" + listeningPort;
+            var proxyConfig = WinHttpGetIEProxyConfigForCurrentUser();
+            if (string.IsNullOrWhiteSpace(proxyConfig.Proxy)) return localProxy;
 
-            var optionSize = Marshal.SizeOf(typeof(INTERNET_PER_CONN_OPTION));
-            var optionPtr = Marshal.AllocCoTaskMem(optionSize * options.Length);
-            for (var i = 0; i < options.Length; ++i)
-            {
-                var opt = new IntPtr(optionPtr.ToInt32() + (i * optionSize));
-                Marshal.StructureToPtr(options[i], opt, false);
-            }
+            var configs = proxyConfig.Proxy.Split(';');
+            if (!proxyConfig.Proxy.Contains("=")) return localProxy + ";https=" + configs[0] + ";ftp=" + configs[0];
 
-            var list = new INTERNET_PER_CONN_OPTION_LIST();
-            list.dwSize = Marshal.SizeOf(list);
-            list.pszConnection = IntPtr.Zero;
-            list.dwOptionCount = options.Length;
-            list.dwOptionError = 0;
-            list.pOptions = optionPtr;
+            return configs.Any(x => x.StartsWith("http="))
+                ? string.Join(";", configs.Select(x => x.StartsWith("http=") ? localProxy : x))
+                : localProxy + ";" + string.Join(";", configs);
+        }
 
-            var ipcoListPtr = Marshal.AllocCoTaskMem(list.dwSize);
-            Marshal.StructureToPtr(list, ipcoListPtr, false);
-
-            try
-            {
-                var isSucceed = NativeMethods.InternetSetOption(hInternet, INTERNET_OPTION.INTERNET_OPTION_PER_CONNECTION_OPTION, ipcoListPtr, list.dwSize);
-                if (!isSucceed) throw new Win32Exception(Marshal.GetLastWin32Error());
-
-                NativeMethods.InternetSetOption(hInternet, INTERNET_OPTION.INTERNET_OPTION_SETTINGS_CHANGED, ipcoListPtr, list.dwSize);
-                NativeMethods.InternetSetOption(hInternet, INTERNET_OPTION.INTERNET_OPTION_REFRESH, ipcoListPtr, list.dwSize);
-            }
-            finally
-            {
-                Marshal.FreeCoTaskMem(optionPtr);
-                Marshal.FreeCoTaskMem(ipcoListPtr);
-                NativeMethods.InternetCloseHandle(hInternet);
-            }
+        /// <summary>
+        /// WinHTTPでIEプロキシ設定を取得。
+        /// </summary>
+        /// <returns></returns>
+        private static WinHttpCurrentUserIEProxyConfig WinHttpGetIEProxyConfigForCurrentUser()
+        {
+            //ここだけWinINetではない……
+            var ieProxyConfig = new WinHttpCurrentUserIEProxyConfig();
+            NativeMethods.WinHttpGetIEProxyConfigForCurrentUser(ref ieProxyConfig);
+            return ieProxyConfig;
         }
     }
+
 }

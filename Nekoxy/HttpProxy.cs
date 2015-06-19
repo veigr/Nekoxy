@@ -21,6 +21,7 @@ namespace Nekoxy
 
         /// <summary>
         /// アップストリームプロキシのホスト名。
+        /// Startupメソッド時に設定されたシステムプロキシより優先して利用される。
         /// アップストリームプロキシは UpstreamProxyHost が null の場合無効となる。
         /// TrotiNet は Dns.GetHostAddresses で取得されたアドレスを順番に接続試行するため、
         /// 接続先によっては動作が遅くなる可能性がある。
@@ -57,7 +58,8 @@ namespace Nekoxy
         /// </summary>
         /// <param name="listeningPort">Listeningするポート。</param>
         /// <param name="useIpV6">falseの場合、127.0.0.1で待ち受ける。trueの場合、::1で待ち受ける。既定false。</param>
-        /// <param name="isSetIEProxySettings">IEプロキシの設定を実施する。既定true。</param>
+        /// <param name="isSetIEProxySettings">trueの場合、プロセス内IEプロキシの設定を実施し、アップストリームプロキシにシステム設定プロキシを設定する
+        /// (ただしUpstreamProxyHostプロパティの方が優先される)。既定true。</param>
         public static void Startup(int listeningPort, bool useIpV6 = false, bool isSetIEProxySettings = true)
         {
             if (server != null) throw new InvalidOperationException("Calling Startup() twice without calling Shutdown() is not permitted.");
@@ -65,7 +67,13 @@ namespace Nekoxy
             TransparentProxyLogic.AfterSessionComplete += InvokeAfterSessionComplete;
             server = new TcpServer(listeningPort, useIpV6);
             server.Start(TransparentProxyLogic.CreateProxy);
-            if (isSetIEProxySettings) WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
+
+            if (isSetIEProxySettings)
+            {
+                WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
+                TransparentProxyLogic.DefaultUpstreamProxyHost = WinInetUtil.GetSystemHttpProxyHost();
+                TransparentProxyLogic.DefaultUpstreamProxyPort = WinInetUtil.GetSystemHttpProxyPort();
+            }
 
             server.InitListenFinished.WaitOne();
             if (server.InitListenException != null) throw server.InitListenException;
