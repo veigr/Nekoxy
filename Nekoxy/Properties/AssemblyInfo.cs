@@ -11,12 +11,9 @@ using System.Threading.Tasks;
 
 [assembly: AssemblyTitle("Nekoxy")]
 [assembly: AssemblyDescription("Simple HTTP Proxy library.")]
-[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("veigr")]
 [assembly: AssemblyProduct("Nekoxy")]
-[assembly: AssemblyCopyright("Copyright ©  2015 veigr")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCopyright("Copyright © 2015 veigr")]
 
 // ComVisible を false に設定すると、その型はこのアセンブリ内で COM コンポーネントから 
 // 参照不可能になります。COM からこのアセンブリ内の型にアクセスする場合は、
@@ -39,5 +36,4 @@ using System.Threading.Tasks;
 // 既定値にすることができます:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
+[assembly: AssemblyVersion("1.1.1.11")]
