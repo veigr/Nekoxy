@@ -65,24 +65,31 @@ namespace Nekoxy
             if (server != null) throw new InvalidOperationException("Calling Startup() twice without calling Shutdown() is not permitted.");
 
             TransparentProxyLogic.AfterSessionComplete += InvokeAfterSessionComplete;
-            server = new TcpServer(listeningPort, useIpV6);
-            server.Start(TransparentProxyLogic.CreateProxy);
-
-            if (isSetIEProxySettings)
+            try
             {
-                WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
-                var systemProxyHost = WinInetUtil.GetSystemHttpProxyHost();
-                var systemProxyPort = WinInetUtil.GetSystemHttpProxyPort();
-                if (systemProxyPort != listeningPort || systemProxyHost.IsLoopbackHost())
+                if (isSetIEProxySettings)
                 {
-                    //自身が指定されていた場合上流には指定しない
-                    TransparentProxyLogic.DefaultUpstreamProxyHost = systemProxyHost;
-                    TransparentProxyLogic.DefaultUpstreamProxyPort = systemProxyPort;
+                    WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
+                    var systemProxyHost = WinInetUtil.GetSystemHttpProxyHost();
+                    var systemProxyPort = WinInetUtil.GetSystemHttpProxyPort();
+                    if (systemProxyPort != listeningPort || systemProxyHost.IsLoopbackHost())
+                    {
+                        //自身が指定されていた場合上流には指定しない
+                        TransparentProxyLogic.DefaultUpstreamProxyHost = systemProxyHost;
+                        TransparentProxyLogic.DefaultUpstreamProxyPort = systemProxyPort;
+                    }
                 }
-            }
 
-            server.InitListenFinished.WaitOne();
-            if (server.InitListenException != null) throw server.InitListenException;
+                server = new TcpServer(listeningPort, useIpV6);
+                server.Start(TransparentProxyLogic.CreateProxy);
+                server.InitListenFinished.WaitOne();
+                if (server.InitListenException != null) throw server.InitListenException;
+            }
+            catch (Exception)
+            {
+                Shutdown();
+                throw;
+            }
         }
 
         /// <summary>
@@ -90,8 +97,9 @@ namespace Nekoxy
         /// </summary>
         public static void Shutdown()
         {
-            server.Stop();
             TransparentProxyLogic.AfterSessionComplete -= InvokeAfterSessionComplete;
+            if (server == null) return;
+            server.Stop();
             server = null;
         }
 

@@ -11,7 +11,8 @@ namespace NekoxyExample
     {
         private static void Main(string[] args)
         {
-            HttpProxy.Startup(12345);
+            HttpProxy.Shutdown();
+            HttpProxy.Startup(37564);
             //HttpProxy.UpstreamProxyHost = "127.0.0.1";
             //HttpProxy.UpstreamProxyPort = 8888;
             HttpProxy.AfterSessionComplete += s => Task.Run(() => Console.WriteLine(s.Request.RequestLine));
