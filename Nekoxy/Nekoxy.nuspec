@@ -8,7 +8,7 @@
 		<owners>$author$</owners>
 		<licenseUrl>https://github.com/veigr/Nekoxy/blob/master/LICENSE</licenseUrl>
 		<projectUrl>https://github.com/veigr/Nekoxy</projectUrl>
-		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<requireLicenseAcceptance>true</requireLicenseAcceptance>
 		<description>$description$</description>
 		<language>ja-JP</language>
 		<tags>HTTP Proxy</tags>
