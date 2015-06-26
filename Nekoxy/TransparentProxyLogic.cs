@@ -100,128 +100,45 @@ namespace Nekoxy
             this.State.NextStep = this.ReadResponse;
         }
 
-
         /// <summary>
-        /// サーバーからブラウザーへレスポンスデータを送信する。
-        /// State.OnResponseMessagePacketが役に立たないのでSendResponse総取っ換え。
+        /// OnReceiveResponseをoverrideし、レスポンスデータを読み取る。
         /// </summary>
-        override protected void SendResponse()
+        protected override void OnReceiveResponse()
         {
-            var responseStream = new MemoryStream();  //List<byte>より圧倒的に早い
-            try
+            //200だけ
+            if (this.ResponseStatusLine.StatusCode != 200) return;
+
+            //GetContentだけやるとサーバーからデータ全部読み込むけどクライアントに送らないってことになる
+            //のでTransferEncodingとContentLengthを書き換えてchunkedじゃないレスポンスとしてクライアントに送信してやる必要がある
+            var response = this.GetContent();
+            this.State.NextStep = null; //既定の後続動作(SendResponse)をキャンセル(自前で送信処理を行う)
+
+            //Content-Encoding対応っぽい
+            using (var ms = new MemoryStream())
             {
-                var tooLarge = false;
-                HttpSocket.MessagePacketHandler sendResponseHandler = (packet, offset, size) =>
-                {
-                    if (size == 0) return;
-                    //2GB超えは対応できない。そもそもデカいデータを想定するならメモリに入れてはいけないのではないか…？
-                    if (int.MaxValue < offset + size)
-                    {
-                        tooLarge = true;
-                        return;
-                    }
+                var stream = this.GetResponseMessageStream(response);
+                stream.CopyTo(ms);
+                var content = ms.ToArray();
+                this.currentSession.Response = new HttpResponse(this.ResponseStatusLine, this.ResponseHeaders, content);
+            }
 
-                    // ReSharper disable once AccessToDisposedClosure
-                    responseStream.Write(packet, (int)offset, (int)size); //データ読み取り
+            //Transfer-Encoding: Chunked をやめて Content-Length を使うようヘッダ書き換え
+            this.ResponseHeaders.TransferEncoding = null;
+            this.ResponseHeaders.ContentLength = (uint)response.Length;
 
-                    if (this.SocketBP.WriteBinary(packet, offset, size) != size) //データ送信
-                        throw new IoBroken();
-                };
+            this.SendResponseStatusAndHeaders(); //クライアントにHTTPステータスとヘッダ送信
+            this.SocketBP.TunnelDataTo(this.TunnelBP, response); //クライアントにレスポンスボディ送信
 
-                this.SendResponseToBrowser(sendResponseHandler);
-                responseStream.Close();
+            //keep-aliveとかじゃなかったら閉じる
+            if (!this.State.bPersistConnectionPS && this.SocketPS != null)
+            {
+                this.SocketPS.CloseSocket();
+                this.SocketPS = null;
+            }
 
-                if (tooLarge) return;   //2GB以上のデータの場合は AfterSessionComplete を発生させない
-                if (AfterSessionComplete == null) return;
-
-                var responseData = responseStream.ToArray();
-                //Content-Encoding対応っぽい
-                using (var ms = new MemoryStream())
-                {
-                    var stream = this.GetResponseMessageStream(responseData);
-                    stream.CopyTo(ms);
-                    responseData = ms.ToArray();
-                }
-
-                this.currentSession.Response = new HttpResponse(this.ResponseStatusLine, this.ResponseHeaders, responseData);
+            //AfterSessionCompleteイベント
+            if (AfterSessionComplete != null)
                 AfterSessionComplete.Invoke(this.currentSession);
-            }
-            finally
-            {
-                responseStream.Dispose();
-            }
-
-            this.State.NextStep = null;
-        }
-
-        /// <summary>
-        /// サーバーからブラウザーへレスポンスデータを送信
-        /// </summary>
-        /// <param name="sendResponseHandler">レスポンスデータ読み取り＆送信用ハンドラ</param>
-        private void SendResponseToBrowser(HttpSocket.MessagePacketHandler sendResponseHandler)
-        {
-            if (!(this.ResponseHeaders.TransferEncoding == null && this.ResponseHeaders.ContentLength == null))
-                this.SendResponseStatusAndHeaders();
-
-
-            var status = this.ResponseStatusLine.StatusCode;
-            if (this.RequestLine.Method.Equals("HEAD")
-                || status == 204 || status == 304 || (100 <= status && status <= 199))
-            {
-                this.SendResponseStatusAndHeaders();
-                this.CloseProxyServerConnection();
-                return;
-            }
-
-            var isChunked = false;
-            var messageLength = 0u;
-            if (this.ResponseHeaders.TransferEncoding != null)
-            {
-                isChunked = this.ResponseHeaders.TransferEncoding.Contains("chunked");
-            }
-            else if (this.ResponseHeaders.ContentLength != null)
-            {
-                messageLength = (uint)this.ResponseHeaders.ContentLength;
-                if (messageLength == 0)
-                {
-                    this.CloseProxyServerConnection();
-                    return;
-                }
-            }
-            else
-            {
-                var buffer = new byte[512];
-                this.SocketPS.TunnelDataTo(ref buffer);
-
-                this.ResponseHeaders.ContentLength = (uint)buffer.Length;
-                this.SocketBP.WriteAsciiLine(this.ResponseStatusLine.StatusLine);
-                this.SocketBP.WriteAsciiLine(this.ResponseHeaders.HeadersInOrder);
-
-                this.SocketBP.TunnelDataTo(this.TunnelBP, buffer);
-                return;
-            }
-
-            if (isChunked)
-                this.SocketPS.TunnelChunkedDataTo(this.SocketBP, sendResponseHandler);
-            else if (!this.State.bPersistConnectionPS)
-                this.SocketPS.TunnelDataTo(sendResponseHandler);
-            else
-                this.SocketPS.TunnelDataTo(sendResponseHandler, messageLength);
-
-            sendResponseHandler(null, 0, 0);
-
-            this.CloseProxyServerConnection();
-        }
-
-        /// <summary>
-        /// プロキシサーバー間コネクションを、KeepAliveとかじゃなかったら閉じる
-        /// </summary>
-        private void CloseProxyServerConnection()
-        {
-            if (this.State.bPersistConnectionPS || this.SocketPS == null) return;
-
-            this.SocketPS.CloseSocket();
-            this.SocketPS = null;
         }
 
         private Session currentSession; //SendRequestで初期化してOnReceiveResponseの最後でイベントに投げる

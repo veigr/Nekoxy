@@ -14,7 +14,6 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
 * レスポンスデータをクライアントに送信後、AfterSessionComplete イベントを発行
 * AfterSessionComplete イベントにてリクエスト/レスポンスデータを読み取り可能
 * Transfer-Encoding: chunked なレスポンスデータは、TrotiNet を用いて予めデコードされる
-    * chunked なデータはクライアントに送信しつつメモリに蓄積し、完了後 AfterSessionComplete で投げられる
 * Content-Encoding 指定のレスポンスデータは、TrotiNet を用いて予めデコードされる
 * アップストリームプロキシを設定可能
     * 設定した場合、システムのプロキシ設定より優先して適用される
@@ -25,9 +24,9 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
 * 複数起動不可
 * Transfer-Encoding: chunked なリクエストの RequestBody の読み取りは未対応
     * ResponseBody には対応
-* GB 級のレスポンスデータを通されると死ぬかも
-    * レスポンスデータをメモリ上に確保するため
-    * 2GB以上のレスポンスデータの場合は AfterSessionComplete イベントが発生しない (そもそも動くか謎)
+* Transfer-Encoding: chunked なレスポンスデータは、Content-Length 指定のデータに変更され、クライアントに送信される
+    * 一旦 Nekoxy 内でデータをすべて受け取ってから下流に流すという動作になってしまうため、巨大なデータの受信には適さない
+    * デコードせず下流に流しデータだけ読み取るのが理想だが、TrotiNet でそれをやるのは少々面倒そうなので絶賛放置中
 * アップストリームプロキシの設定と環境によっては動作が遅くなる場合がある
     * TrotiNet は Dns.GetHostAddresses で取得されたアドレスを順番に接続試行するため、接続先によっては動作が遅くなる可能性がある。  
       例えば 127.0.0.1 で待ち受けている別のローカルプロキシに対して接続したい場合、localhost を指定するとまず ::1 へ接続試行し、その後 127.0.0.1 へアクセスするという挙動となり、動作が遅くなってしまうことがある。  
@@ -42,7 +41,7 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
     * HttpProxy.IsEnableUpstreamProxy プロパティを true にし、UpstreamProxyHost プロパティ、UpstreamProxyPort プロパティを設定する
 
 | 既定 | isSetIEProxySettings | IsEnableUpstreamProxy | UpstreamProxyHost | 経路 |
-|----- | -------------------- | --------------------- | ----------------- | ---- |
+|:---: | :------------------: | :-------------------: | :---------------: | ---- |
 | ○ | true  | false | 任意 | client -> Nekoxy -> IE Settings Proxy -> Server |
 |   | false | false | 任意 | client -> Nekoxy -> Server |
 |   | false | true  | 指定 | client -> Nekoxy -> Upstream Proxy -> Server |
@@ -79,7 +78,6 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 
 #### 1.2.0
 
-* Transfer-Encoding: chunked なレスポンスデータをそのままクライアントに送信するよう変更
 * HttpProxy クラスに IsEnableUpstreamProxy プロパティを追加
     * アップストリームプロキシの有効/無効は、UpstreamProxyHost プロパティではなく IsEnableUpstreamProxy で行うよう変更が必要。
 
