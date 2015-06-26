@@ -201,10 +201,10 @@ namespace Nekoxy
                 return;
             }
 
-            if (!this.State.bPersistConnectionPS)
-                this.SocketPS.TunnelDataTo(sendResponseHandler);
-            else if (isChunked)
+            if (isChunked)
                 this.SocketPS.TunnelChunkedDataTo(this.SocketBP, sendResponseHandler);
+            else if (!this.State.bPersistConnectionPS)
+                this.SocketPS.TunnelDataTo(sendResponseHandler);
             else
                 this.SocketPS.TunnelDataTo(sendResponseHandler, messageLength);
 
