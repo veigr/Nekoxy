@@ -19,6 +19,12 @@ namespace Nekoxy
         public static event Action<Session> AfterSessionComplete;
 
         /// <summary>
+        /// アップストリームプロキシの指定を有効にする。既定値false。
+        /// trueの場合、デフォルトプロキシを無視し、UpstreamProxyHost プロパティと UpstreamProxyPort プロパティをアップストリームプロキシに設定する。
+        /// </summary>
+        public static bool IsEnableUpstreamProxy { get; set; }
+
+        /// <summary>
         /// インスタンス初期化時にRelayHttpProxyHostに設定される値。
         /// </summary>
         public static string UpstreamProxyHost { get; set; }
@@ -56,9 +62,8 @@ namespace Nekoxy
         /// <param name="clientSocket">Browser-Proxy間Socket。SocketBP。</param>
         public TransparentProxyLogic(HttpSocket clientSocket) : base(clientSocket)
         {
-            //TODO:UpstreamProxyHost設定したくないのにDefaultUpstreamProxyHost拾ってしまう悩み
-            this.RelayHttpProxyHost = UpstreamProxyHost ?? DefaultUpstreamProxyHost;
-            this.RelayHttpProxyPort = UpstreamProxyHost != null ? UpstreamProxyPort : DefaultUpstreamProxyPort;
+            this.RelayHttpProxyHost = IsEnableUpstreamProxy ? UpstreamProxyHost : DefaultUpstreamProxyHost;
+            this.RelayHttpProxyPort = IsEnableUpstreamProxy ? UpstreamProxyPort : DefaultUpstreamProxyPort;
         }
 
         /// <summary>
