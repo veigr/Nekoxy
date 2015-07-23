@@ -45,24 +45,14 @@ namespace Nekoxy
         /// </summary>
         /// <returns>システムHTTPプロキシのホスト名。設定されていない場合はnullを返す。</returns>
         internal static string GetSystemHttpProxyHost()
-        {
-            var proxy = GetSystemHttpProxy();
-            return proxy != null
-                ? GetSystemHttpProxy().Split(':')[0]
-                : null;
-        }
+            => GetSystemHttpProxy()?.Split(':')[0];
 
         /// <summary>
         /// システムプロキシに設定されたHTTPプロキシのポート番号を取得。
         /// </summary>
         /// <returns>システムHTTPプロキシのポート番号。設定されていない場合は0を返す。</returns>
         internal static int GetSystemHttpProxyPort()
-        {
-            var proxy = GetSystemHttpProxy();
-            return proxy != null
-                ? int.Parse(GetSystemHttpProxy().Split(':')[1])
-                : 0;
-        }
+            => int.Parse(GetSystemHttpProxy()?.Split(':')[1] ?? "0");
 
         /// <summary>
         /// システムプロキシに設定されたHTTPプロキシ設定を取得。

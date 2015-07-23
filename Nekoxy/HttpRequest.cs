@@ -28,50 +28,38 @@ namespace Nekoxy
         /// <summary>
         /// HTTPリクエストライン。
         /// </summary>
-        public HttpRequestLine RequestLine { get; private set; }
+        public HttpRequestLine RequestLine { get; }
 
         /// <summary>
         /// HTTPヘッダ。
         /// </summary>
-        public HttpHeaders Headers { get; private set; }
+        public HttpHeaders Headers { get; }
 
         /// <summary>
         /// HTTPリクエストボディ。
         /// Transfer-Encoding: chunked なHTTPリクエストの RequestBody の読み取りは未対応。
         /// </summary>
-        public byte[] Body { get; private set; }
+        public byte[] Body { get; }
 
         /// <summary>
         /// パスとクエリ。
         /// </summary>
         public string PathAndQuery
-        {
-            //RequestLine.URIはUpstreamProxyを設定した際FULLパスになる
-            get
-            {
-                return this.RequestLine.URI.StartsWith("/")
-                    ? this.RequestLine.URI
-                    : new Uri(this.RequestLine.URI).PathAndQuery;
-            }
-        }
+            => this.RequestLine.URI.StartsWith("/")
+            ? this.RequestLine.URI
+            : new Uri(this.RequestLine.URI).PathAndQuery;
 
         /// <summary>
         /// リクエストの文字エンコーディング。
         /// content-typeヘッダに指定されたcharsetを元に生成される。
         /// 指定がない場合はUS-ASCII。
         /// </summary>
-        public Encoding Charset
-        {
-            get { return this.Headers.GetEncoding(); }
-        }
+        public Encoding Charset => this.Headers.GetEncoding();
 
         /// <summary>
         /// HTTPリクエストボディを文字列で取得する。
         /// Transfer-Encoding: chunked なHTTPリクエストの RequestBody の読み取りは未対応。
         /// </summary>
-        public string BodyAsString
-        {
-            get { return this.Body != null ? this.Charset.GetString(this.Body) : null; }
-        }
+        public string BodyAsString => this.Body != null ? this.Charset.GetString(this.Body) : null;
     }
 }

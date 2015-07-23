@@ -51,9 +51,7 @@ namespace Nekoxy
         /// <param name="clientSocket">Browser-Proxy間Socket。SocketBP。</param>
         /// <returns>ProxyLogicインスタンス。</returns>
         public new static TransparentProxyLogic CreateProxy(HttpSocket clientSocket)
-        {
-            return new TransparentProxyLogic(clientSocket);
-        }
+            => new TransparentProxyLogic(clientSocket);
 
         /// <summary>
         /// SocketBPからインスタンスを初期化。
@@ -108,8 +106,15 @@ namespace Nekoxy
             //200だけ
             if (this.ResponseStatusLine.StatusCode != 200) return;
 
-            //GetContentだけやるとサーバーからデータ全部読み込むけどクライアントに送らないってことになる
-            //のでTransferEncodingとContentLengthを書き換えてchunkedじゃないレスポンスとしてクライアントに送信してやる必要がある
+            // GetContentだけやるとサーバーからデータ全部読み込むけどクライアントに送らないってことになる。
+            // のでTransferEncodingとContentLengthを書き換えてchunkedじゃないレスポンスとしてクライアントに送信してやる必要がある。
+            // 
+            // RFC 7230 の 3.3.1 を見る限りだと、Transfer-Encoding はリクエスト/レスポンスチェーンにいるどの recipient も
+            // デコードしておっけーみたいに書いてあるから、HTTP的には問題なさそう。
+            // https://tools.ietf.org/html/rfc7230#section-3.3.1
+            // 
+            // ただ4.1.3のロジックとTrotiNetのとを見比べると trailer フィールドへの対応が足りてるのかどうか疑問が残る。
+            // https://tools.ietf.org/html/rfc7230#section-4.1.3
             var response = this.GetContent();
             this.State.NextStep = null; //既定の後続動作(SendResponse)をキャンセル(自前で送信処理を行う)
 
@@ -122,7 +127,7 @@ namespace Nekoxy
                 this.currentSession.Response = new HttpResponse(this.ResponseStatusLine, this.ResponseHeaders, content);
             }
 
-            //Transfer-Encoding: Chunked をやめて Content-Length を使うようヘッダ書き換え
+            // Transfer-Encoding: Chunked をやめて Content-Length を使うようヘッダ書き換え
             this.ResponseHeaders.TransferEncoding = null;
             this.ResponseHeaders.ContentLength = (uint)response.Length;
 
@@ -130,15 +135,14 @@ namespace Nekoxy
             this.SocketBP.TunnelDataTo(this.TunnelBP, response); //クライアントにレスポンスボディ送信
 
             //keep-aliveとかじゃなかったら閉じる
-            if (!this.State.bPersistConnectionPS && this.SocketPS != null)
+            if (!this.State.bPersistConnectionPS)
             {
-                this.SocketPS.CloseSocket();
+                this.SocketPS?.CloseSocket();
                 this.SocketPS = null;
             }
 
             //AfterSessionCompleteイベント
-            if (AfterSessionComplete != null)
-                AfterSessionComplete.Invoke(this.currentSession);
+            AfterSessionComplete?.Invoke(this.currentSession);
         }
 
         private Session currentSession; //SendRequestで初期化してOnReceiveResponseの最後でイベントに投げる

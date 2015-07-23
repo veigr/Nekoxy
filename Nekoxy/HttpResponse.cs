@@ -28,55 +28,41 @@ namespace Nekoxy
         /// <summary>
         /// HTTPステータスライン。
         /// </summary>
-        public HttpStatusLine StatusLine { get; private set; }
+        public HttpStatusLine StatusLine { get; }
 
         /// <summary>
         /// HTTPヘッダヘッダ。
         /// </summary>
-        public HttpHeaders Headers { get; private set; }
+        public HttpHeaders Headers { get; }
 
         /// <summary>
         /// HTTPレスポンスボディ。
         /// </summary>
-        public byte[] Body { get; private set; }
+        public byte[] Body { get; }
 
         /// <summary>
         /// content-type ヘッダ。
         /// </summary>
         public string ContentType
-        {
-            get
-            {
-                return this.Headers.Headers.ContainsKey("content-type")
-                    ? this.Headers.Headers["content-type"]
-                    : string.Empty;
-            }
-        }
+            => this.Headers.Headers.ContainsKey("content-type")
+            ? this.Headers.Headers["content-type"]
+            : string.Empty;
 
         /// <summary>
         /// content-type ヘッダから MIME Type のみ取得。
         /// </summary>
-        public string MimeType
-        {
-            get { return this.ContentType.GetMimeType(); }
-        }
+        public string MimeType => this.ContentType.GetMimeType();
 
         /// <summary>
         /// レスポンスの文字エンコーディング。
         /// content-typeヘッダに指定されたcharsetを元に生成される。
         /// 指定がない場合はUS-ASCII。
         /// </summary>
-        public Encoding Charset
-        {
-            get { return this.Headers.GetEncoding(); }
-        }
+        public Encoding Charset => this.Headers.GetEncoding();
 
         /// <summary>
         /// HTTPレスポンスボディを文字列で取得する。
         /// </summary>
-        public string BodyAsString
-        {
-            get { return this.Charset.GetString(this.Body); }
-        }
+        public string BodyAsString => this.Charset.GetString(this.Body);
     }
 }

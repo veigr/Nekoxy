@@ -59,10 +59,7 @@ namespace Nekoxy
         /// <summary>
         /// プロキシサーバーが Listening 中かどうかを取得。
         /// </summary>
-        public static bool IsInListening
-        {
-            get { return server != null && server.IsListening; }
-        }
+        public static bool IsInListening => server != null && server.IsListening;
 
         /// <summary>
         /// 指定ポートで Listening を開始する。
@@ -109,15 +106,11 @@ namespace Nekoxy
         public static void Shutdown()
         {
             TransparentProxyLogic.AfterSessionComplete -= InvokeAfterSessionComplete;
-            if (server == null) return;
-            server.Stop();
+            server?.Stop();
             server = null;
         }
 
         private static void InvokeAfterSessionComplete(Session session)
-        {
-            if (AfterSessionComplete != null)
-                AfterSessionComplete.Invoke(session);
-        }
+            => AfterSessionComplete?.Invoke(session);
     }
 }
