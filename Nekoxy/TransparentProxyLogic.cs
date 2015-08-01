@@ -115,7 +115,9 @@ namespace Nekoxy
             // 
             // ただ4.1.3のロジックとTrotiNetのとを見比べると trailer フィールドへの対応が足りてるのかどうか疑問が残る。
             // https://tools.ietf.org/html/rfc7230#section-4.1.3
-            var response = this.GetContent();
+            var response = (this.ResponseHeaders.TransferEncoding != null || this.ResponseHeaders.ContentLength != null)
+                ? this.GetContent()
+                : this.GetContentWhenUnknownLength();
             this.State.NextStep = null; //既定の後続動作(SendResponse)をキャンセル(自前で送信処理を行う)
 
             //Content-Encoding対応っぽい
@@ -143,6 +145,17 @@ namespace Nekoxy
 
             //AfterSessionCompleteイベント
             AfterSessionComplete?.Invoke(this.currentSession);
+        }
+
+        /// <summary>
+        /// Transfer-Encoding も Content-Length も不明の場合、TrotiNet の SendResponse() にならい、Socket.Receive() が 0 になるまで受ける。
+        /// </summary>
+        /// <returns></returns>
+        private byte[] GetContentWhenUnknownLength()
+        {
+            var buffer = new byte[512];
+            this.SocketPS.TunnelDataTo(ref buffer); // buffer の長さは内部で調整される
+            return buffer;
         }
 
         private Session currentSession; //SendRequestで初期化してOnReceiveResponseの最後でイベントに投げる
