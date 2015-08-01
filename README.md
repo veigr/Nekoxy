@@ -27,6 +27,10 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
 * Transfer-Encoding: chunked なレスポンスデータは、Content-Length 指定のデータに変更され、クライアントに送信される
     * 一旦 Nekoxy 内でデータをすべて受け取ってから下流に流すという動作になってしまうため、巨大なデータの受信には適さない
     * デコードせず下流に流しデータだけ読み取るのが理想だが、TrotiNet でそれをやるのは少々面倒そうなので絶賛放置中
+    * 経路上での Transfer-Encoding のデコード自体は　RFC 7230 の 3.3.1　で認められている
+* Transfer-Encoding は chunked 以外には対応していない
+    * TrotiNet が非対応
+    * gzip とかはそもそも Opera くらいしか対応してないっぽい？
 * アップストリームプロキシの設定と環境によっては動作が遅くなる場合がある
     * TrotiNet は Dns.GetHostAddresses で取得されたアドレスを順番に接続試行するため、接続先によっては動作が遅くなる可能性がある。  
       例えば 127.0.0.1 で待ち受けている別のローカルプロキシに対して接続したい場合、localhost を指定するとまず ::1 へ接続試行し、その後 127.0.0.1 へアクセスするという挙動となり、動作が遅くなってしまうことがある。  
@@ -75,6 +79,10 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 参照 : LICENSE ファイル
 
 ### 更新履歴
+
+#### 1.2.1
+
+* Content-Length も Transfer-Encoding も無い Connection: close なレスポンスを正常に受信できるよう修正
 
 #### 1.2.0
 

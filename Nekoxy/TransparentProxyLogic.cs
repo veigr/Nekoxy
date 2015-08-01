@@ -115,9 +115,9 @@ namespace Nekoxy
             // 
             // ただ4.1.3のロジックとTrotiNetのとを見比べると trailer フィールドへの対応が足りてるのかどうか疑問が残る。
             // https://tools.ietf.org/html/rfc7230#section-4.1.3
-            var response = (this.ResponseHeaders.TransferEncoding != null || this.ResponseHeaders.ContentLength != null)
-                ? this.GetContent()
-                : this.GetContentWhenUnknownLength();
+            var response = this.ResponseHeaders.IsUnknownLength()
+                ? this.GetContentWhenUnknownLength()
+                : this.GetContent();
             this.State.NextStep = null; //既定の後続動作(SendResponse)をキャンセル(自前で送信処理を行う)
 
             //Content-Encoding対応っぽい

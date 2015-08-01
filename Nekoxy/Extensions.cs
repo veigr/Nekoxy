@@ -40,6 +40,12 @@ namespace Nekoxy
             return addresses.Any(IPAddress.IsLoopback);
         }
 
+        public static bool IsUnknownLength(this HttpHeaders responseHeaders)
+        {
+            var isChunked = responseHeaders.TransferEncoding?.Contains("chunked") ?? false;
+            return !isChunked && responseHeaders.ContentLength == null;
+        }
+
         private static readonly Encoding defaultEncoding = Encoding.ASCII;
         private static readonly Regex charsetRegex = new Regex("charset=([\\w-]*)", RegexOptions.Compiled);
         private static readonly Regex mimeTypeRegex = new Regex("^([^;]+)", RegexOptions.Compiled);
