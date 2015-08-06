@@ -80,6 +80,13 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 
 ### 更新履歴
 
+#### 1.3.0
+
+* HttpProxy クラスに AfterReadRequestHeaders イベント、AfterReadResponseHeaders イベントを追加
+    * Body 受信前に発生する
+    * 主にデバッグ用途を想定
+* Session, HttpRequest, HttpResponse クラスの ToString() メソッドを override し、リクエスト/ステータス ラインとヘッダを文字列化して取得できるよう変更
+
 #### 1.2.1
 
 * Content-Length も Transfer-Encoding も無い Connection: close なレスポンスを正常に受信できるよう修正

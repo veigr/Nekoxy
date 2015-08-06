@@ -15,9 +15,21 @@ namespace Nekoxy
         private static TcpServer server;
 
         /// <summary>
-        /// HTTPレスポンスをプロキシクライアントに送信完了した際に発生。
+        /// HTTPレスポンスをプロキシ クライアントに送信完了した際に発生。
         /// </summary>
         public static event Action<Session> AfterSessionComplete;
+
+        /// <summary>
+        /// リクエストヘッダを読み込み完了した際に発生。
+        /// ボディは受信前。
+        /// </summary>
+        public static event Action<HttpRequest> AfterReadRequestHeaders;
+
+        /// <summary>
+        /// レスポンスヘッダを読み込み完了した際に発生。
+        /// ボディは受信前。
+        /// </summary>
+        public static event Action<HttpResponse> AfterReadResponseHeaders;
 
         /// <summary>
         /// アップストリームプロキシの指定を有効にする。
@@ -73,6 +85,8 @@ namespace Nekoxy
             if (server != null) throw new InvalidOperationException("Calling Startup() twice without calling Shutdown() is not permitted.");
 
             TransparentProxyLogic.AfterSessionComplete += InvokeAfterSessionComplete;
+            TransparentProxyLogic.AfterReadRequestHeaders += InvokeAfterReadRequestHeaders;
+            TransparentProxyLogic.AfterReadResponseHeaders += InvokeAfterReadResponseHeaders;
             try
             {
                 if (isSetIEProxySettings)
@@ -106,11 +120,19 @@ namespace Nekoxy
         public static void Shutdown()
         {
             TransparentProxyLogic.AfterSessionComplete -= InvokeAfterSessionComplete;
+            TransparentProxyLogic.AfterReadRequestHeaders -= InvokeAfterReadRequestHeaders;
+            TransparentProxyLogic.AfterReadResponseHeaders -= InvokeAfterReadResponseHeaders;
             server?.Stop();
             server = null;
         }
 
         private static void InvokeAfterSessionComplete(Session session)
             => AfterSessionComplete?.Invoke(session);
+
+        private static void InvokeAfterReadRequestHeaders(HttpRequest request)
+            => AfterReadRequestHeaders?.Invoke(request);
+
+        private static void InvokeAfterReadResponseHeaders(HttpResponse response)
+            => AfterReadResponseHeaders?.Invoke(response);
     }
 }

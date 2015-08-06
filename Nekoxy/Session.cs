@@ -19,5 +19,9 @@ namespace Nekoxy
         /// HTTPレスポンスデータ。
         /// </summary>
         public HttpResponse Response { get; internal set; }
+
+        public override string ToString()
+            => $"{this.Request}{Environment.NewLine}" +
+               $"{this.Response}";
     }
 }

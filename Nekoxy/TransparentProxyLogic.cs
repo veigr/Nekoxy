@@ -14,9 +14,21 @@ namespace Nekoxy
     internal class TransparentProxyLogic : ProxyLogic
     {
         /// <summary>
-        /// レスポンス送信後に発生するイベント。
+        /// HTTPレスポンスをプロキシ クライアントに送信完了した際に発生。
         /// </summary>
         public static event Action<Session> AfterSessionComplete;
+
+        /// <summary>
+        /// リクエストヘッダを読み込み完了した際に発生。
+        /// ボディは受信前。
+        /// </summary>
+        public static event Action<HttpRequest> AfterReadRequestHeaders;
+
+        /// <summary>
+        /// レスポンスヘッダを読み込み完了した際に発生。
+        /// ボディは受信前。
+        /// </summary>
+        public static event Action<HttpResponse> AfterReadResponseHeaders;
 
         /// <summary>
         /// アップストリームプロキシの指定を有効にする。既定値false。
@@ -69,6 +81,8 @@ namespace Nekoxy
         /// </summary>
         protected override void SendRequest()
         {
+            AfterReadRequestHeaders?.Invoke(new HttpRequest(this.RequestLine, this.RequestHeaders, null));
+
             this.currentSession = new Session();
 
             //HTTPメソッド送信
@@ -103,6 +117,8 @@ namespace Nekoxy
         /// </summary>
         protected override void OnReceiveResponse()
         {
+            AfterReadResponseHeaders?.Invoke(new HttpResponse(this.ResponseStatusLine, this.ResponseHeaders, null));
+
             //200だけ
             if (this.ResponseStatusLine.StatusCode != 200) return;
 

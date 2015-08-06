@@ -64,5 +64,9 @@ namespace Nekoxy
         /// HTTPレスポンスボディを文字列で取得する。
         /// </summary>
         public string BodyAsString => this.Charset.GetString(this.Body);
+
+        public override string ToString()
+            => $"{this.StatusLine}{Environment.NewLine}" +
+               $"{this.Headers.HeadersInOrder}";
     }
 }
