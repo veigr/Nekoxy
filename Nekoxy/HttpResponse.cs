@@ -63,10 +63,11 @@ namespace Nekoxy
         /// <summary>
         /// HTTPレスポンスボディを文字列で取得する。
         /// </summary>
-        public string BodyAsString => this.Charset.GetString(this.Body);
+        public string BodyAsString => this.Body?.ToString(this.Charset);
 
         public override string ToString()
             => $"{this.StatusLine}{Environment.NewLine}" +
-               $"{this.Headers.HeadersInOrder}";
+               $"{this.Headers.HeadersInOrder}{Environment.NewLine}" +
+               $"{this.BodyAsString}{Environment.NewLine}";
     }
 }

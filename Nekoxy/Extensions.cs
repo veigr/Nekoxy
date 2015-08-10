@@ -46,6 +46,11 @@ namespace Nekoxy
             return !isChunked && responseHeaders.ContentLength == null;
         }
 
+        public static string ToString(this byte[] bytes, Encoding charset)
+        {
+            return charset.GetString(bytes);
+        }
+
         private static readonly Encoding defaultEncoding = Encoding.ASCII;
         private static readonly Regex charsetRegex = new Regex("charset=([\\w-]*)", RegexOptions.Compiled);
         private static readonly Regex mimeTypeRegex = new Regex("^([^;]+)", RegexOptions.Compiled);

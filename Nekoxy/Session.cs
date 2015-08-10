@@ -21,7 +21,7 @@ namespace Nekoxy
         public HttpResponse Response { get; internal set; }
 
         public override string ToString()
-            => $"{this.Request}{Environment.NewLine}" +
+            => $"{this.Request}{Environment.NewLine}{Environment.NewLine}" +
                $"{this.Response}";
     }
 }

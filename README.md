@@ -80,6 +80,11 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 
 ### 更新履歴
 
+#### 1.3.1
+
+* Session, HttpRequest, HttpResponse クラスの ToString() メソッドに BodyAsString も付加するよう変更
+* HttpResponse の Body が null の場合、BodyAsString を参照すると例外が発生していた問題を修正
+
 #### 1.3.0
 
 * HttpProxy クラスに AfterReadRequestHeaders イベント、AfterReadResponseHeaders イベントを追加

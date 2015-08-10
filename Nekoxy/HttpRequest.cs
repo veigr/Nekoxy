@@ -60,10 +60,11 @@ namespace Nekoxy
         /// HTTPリクエストボディを文字列で取得する。
         /// Transfer-Encoding: chunked なHTTPリクエストの RequestBody の読み取りは未対応。
         /// </summary>
-        public string BodyAsString => this.Body != null ? this.Charset.GetString(this.Body) : null;
+        public string BodyAsString => this.Body?.ToString(this.Charset);
 
         public override string ToString()
             => $"{this.RequestLine}{Environment.NewLine}" +
-               $"{this.Headers.HeadersInOrder}";
+               $"{this.Headers.HeadersInOrder}{Environment.NewLine}" +
+               $"{this.BodyAsString}{Environment.NewLine}";
     }
 }
