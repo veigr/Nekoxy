@@ -45,9 +45,9 @@ namespace Nekoxy
         /// パスとクエリ。
         /// </summary>
         public string PathAndQuery
-            => this.RequestLine.URI.StartsWith("/")
-            ? this.RequestLine.URI
-            : new Uri(this.RequestLine.URI).PathAndQuery;
+            => this.RequestLine.URI.Contains("://") && Uri.IsWellFormedUriString(this.RequestLine.URI, UriKind.Absolute) ? new Uri(this.RequestLine.URI).PathAndQuery
+            : this.RequestLine.URI.Contains("/") ? this.RequestLine.URI
+            : string.Empty;
 
         /// <summary>
         /// リクエストの文字エンコーディング。

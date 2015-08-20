@@ -36,4 +36,4 @@ using System.Threading.Tasks;
 // 既定値にすることができます:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("1.3.1.16")]
+[assembly: AssemblyVersion("1.4.0.17")]

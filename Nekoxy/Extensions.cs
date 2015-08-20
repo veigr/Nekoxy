@@ -36,8 +36,19 @@ namespace Nekoxy
 
         public static bool IsLoopbackHost(this string hostName)
         {
+            var localAddresses = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+            IPAddress parsed;
+            if (IPAddress.TryParse(hostName, out parsed))
+                return IPAddress.IsLoopback(parsed) || localAddresses.Any(x => x.Equals(parsed));
+
             var addresses = Dns.GetHostEntry(hostName).AddressList;
-            return addresses.Any(IPAddress.IsLoopback);
+            return addresses.Any(IPAddress.IsLoopback) || addresses.Intersect(localAddresses).Any();
+        }
+
+        public static bool IsOwnProxy(this Uri proxy)
+        {
+            return proxy.Port == HttpProxy.ListeningPort
+                   && proxy.Host.IsLoopbackHost();
         }
 
         public static bool IsUnknownLength(this HttpHeaders responseHeaders)

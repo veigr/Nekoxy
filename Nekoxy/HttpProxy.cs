@@ -87,20 +87,12 @@ namespace Nekoxy
             TransparentProxyLogic.AfterSessionComplete += InvokeAfterSessionComplete;
             TransparentProxyLogic.AfterReadRequestHeaders += InvokeAfterReadRequestHeaders;
             TransparentProxyLogic.AfterReadResponseHeaders += InvokeAfterReadResponseHeaders;
+            TransparentProxyLogic.IsUseSystemProxy = isSetIEProxySettings;
+            ListeningPort = listeningPort;
             try
             {
                 if (isSetIEProxySettings)
-                {
                     WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
-                    var systemProxyHost = WinInetUtil.GetSystemHttpProxyHost();
-                    var systemProxyPort = WinInetUtil.GetSystemHttpProxyPort();
-                    if (systemProxyPort != listeningPort || systemProxyHost.IsLoopbackHost())
-                    {
-                        //自身が指定されていた場合上流には指定しない
-                        TransparentProxyLogic.DefaultUpstreamProxyHost = systemProxyHost;
-                        TransparentProxyLogic.DefaultUpstreamProxyPort = systemProxyPort;
-                    }
-                }
 
                 server = new TcpServer(listeningPort, useIpV6);
                 server.Start(TransparentProxyLogic.CreateProxy);
@@ -125,6 +117,8 @@ namespace Nekoxy
             server?.Stop();
             server = null;
         }
+
+        internal static int ListeningPort { get; set; }
 
         private static void InvokeAfterSessionComplete(Session session)
             => AfterSessionComplete?.Invoke(session);

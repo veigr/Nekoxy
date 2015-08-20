@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using TrotiNet;
 
@@ -32,7 +33,7 @@ namespace Nekoxy
 
         /// <summary>
         /// アップストリームプロキシの指定を有効にする。既定値false。
-        /// trueの場合、デフォルトプロキシを無視し、UpstreamProxyHost プロパティと UpstreamProxyPort プロパティをアップストリームプロキシに設定する。
+        /// trueの場合、IsUseSystemProxy を無視し、UpstreamProxyHost プロパティと UpstreamProxyPort プロパティをアップストリームプロキシに設定する。
         /// </summary>
         public static bool IsEnableUpstreamProxy { get; set; }
 
@@ -47,14 +48,9 @@ namespace Nekoxy
         public static int UpstreamProxyPort { get; set; }
 
         /// <summary>
-        /// UpstreamProxyHostがnullの場合に用いられるデフォルトホスト。
+        /// 上流にシステムプロキシを設定するかどうか。
         /// </summary>
-        public static string DefaultUpstreamProxyHost { get; set; }
-
-        /// <summary>
-        /// UpstreamProxyHostがnullの場合に用いられるデフォルトポート番号。
-        /// </summary>
-        public static int DefaultUpstreamProxyPort { get; set; }
+        public static bool IsUseSystemProxy { get; set; } = true;
 
         /// <summary>
         /// TcpServerがインスタンスを生成する際に使用するメソッド。
@@ -72,8 +68,55 @@ namespace Nekoxy
         /// <param name="clientSocket">Browser-Proxy間Socket。SocketBP。</param>
         public TransparentProxyLogic(HttpSocket clientSocket) : base(clientSocket)
         {
-            this.RelayHttpProxyHost = IsEnableUpstreamProxy ? UpstreamProxyHost : DefaultUpstreamProxyHost;
-            this.RelayHttpProxyPort = IsEnableUpstreamProxy ? UpstreamProxyPort : DefaultUpstreamProxyPort;
+            this.RelayHttpProxyHost = IsEnableUpstreamProxy ? UpstreamProxyHost : null;
+            this.RelayHttpProxyPort = IsEnableUpstreamProxy ? UpstreamProxyPort : 80;
+        }
+
+        /// <summary>
+        /// クライアントからリクエストヘッダまで読み込み、サーバーアクセス前のタイミング。
+        /// 上流プロキシの設定を行う。
+        /// </summary>
+        protected override void OnReceiveRequest()
+        {
+            if (!IsUseSystemProxy || IsEnableUpstreamProxy) return;
+
+            var requestUri = this.GetEffectiveRequestUri();
+            if (requestUri != null)
+            {
+                var systemProxyConfig = WebRequest.GetSystemWebProxy();
+                if (systemProxyConfig.IsBypassed(requestUri)) return; //ダイレクトアクセス
+                var systemProxy = systemProxyConfig.GetProxy(requestUri);
+
+                this.RelayHttpProxyHost = !systemProxy.IsOwnProxy() ? systemProxy.Host : null;
+                this.RelayHttpProxyPort = systemProxy.Port;
+            }
+            else
+            {
+                //リクエストURIをうまく組み立てられなかった場合、自動構成は諦めて通常のプロキシ設定を適用
+                var systemProxyHost = WinInetUtil.GetSystemHttpProxyHost();
+                var systemProxyPort = WinInetUtil.GetSystemHttpProxyPort();
+                if (systemProxyPort == HttpProxy.ListeningPort && systemProxyHost.IsLoopbackHost())
+                    return; //自身が指定されていた場合上流には指定しない
+                this.RelayHttpProxyHost = systemProxyHost;
+                this.RelayHttpProxyPort = systemProxyPort;
+            }
+        }
+
+        private Uri GetEffectiveRequestUri()
+        {
+            if (this.RequestLine.URI.Contains("://"))
+                return new Uri(this.RequestLine.URI);
+
+            int destinationPort;
+            var destinationHost = this.ParseDestinationHostAndPort(this.RequestLine, this.RequestHeaders, out destinationPort);
+            var isDefaultPort = destinationPort == (this.RequestLine.Method == "CONNECT" ? 443 : 80);
+
+            var scheme = this.RequestLine.Method == "CONNECT" ? "https" : "http";
+            var authority = isDefaultPort ? destinationHost : $"{destinationHost}:{destinationPort}";
+            var pathAndQuery = this.RequestLine.URI.Contains("/") ? this.RequestLine.URI : string.Empty;
+
+            Uri uri;
+            return Uri.TryCreate($"{scheme}://{authority}/{pathAndQuery}", UriKind.Absolute, out uri) ? uri : null;
         }
 
         /// <summary>
