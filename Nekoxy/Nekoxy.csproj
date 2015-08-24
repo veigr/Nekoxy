@@ -42,7 +42,6 @@
     <Reference Include="TrotiNet, Version=0.8.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>DependentAssemblies\TrotiNet.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -50,6 +49,8 @@
     <Compile Include="HttpRequest.cs" />
     <Compile Include="HttpResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ProxyConfig.cs" />
+    <Compile Include="ProxyConfigType.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="TransparentProxyLogic.cs" />
     <Compile Include="Extensions.cs" />

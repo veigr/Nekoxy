@@ -32,40 +32,12 @@ namespace Nekoxy
         public static event Action<HttpResponse> AfterReadResponseHeaders;
 
         /// <summary>
-        /// アップストリームプロキシの指定を有効にする。
-        /// 既定値false。
-        /// trueの場合、Startup メソッド時に設定されたシステムプロキシを無視し、
-        /// UpstreamProxyHost プロパティと UpstreamProxyPort プロパティをアップストリームプロキシに設定する。
+        /// 上流プロキシ設定。
         /// </summary>
-        public static bool IsEnableUpstreamProxy
+        public static ProxyConfig UpstreamProxyConfig
         {
-            get { return TransparentProxyLogic.IsEnableUpstreamProxy; }
-            set { TransparentProxyLogic.IsEnableUpstreamProxy = value; }
-        }
-
-        /// <summary>
-        /// アップストリームプロキシのホスト名。
-        /// Startupメソッド時に設定されたシステムプロキシより優先して利用される。
-        /// アップストリームプロキシは UpstreamProxyHost が null の場合はダイレクトアクセスとなる。
-        /// TrotiNet は Dns.GetHostAddresses で取得されたアドレスを順番に接続試行するため、
-        /// 接続先によっては動作が遅くなる可能性がある。
-        /// 例えば 127.0.0.1 で待ち受けているローカルプロキシに対して接続したい場合、
-        /// localhost を指定するとまず ::1 へ接続試行するため、動作が遅くなってしまう。
-        /// </summary>
-        public static string UpstreamProxyHost
-        {
-            get { return TransparentProxyLogic.UpstreamProxyHost; }
-            set { TransparentProxyLogic.UpstreamProxyHost = value; }
-        }
-
-        /// <summary>
-        /// アップストリームプロキシのポート番号。
-        /// アップストリームプロキシは UpstreamProxyHost が null の場合無効となる。
-        /// </summary>
-        public static int UpstreamProxyPort
-        {
-            get { return TransparentProxyLogic.UpstreamProxyPort; }
-            set { TransparentProxyLogic.UpstreamProxyPort = value; }
+            get { return TransparentProxyLogic.UpstreamProxyConfig; }
+            set { TransparentProxyLogic.UpstreamProxyConfig = value; }
         }
 
         /// <summary>
@@ -79,20 +51,19 @@ namespace Nekoxy
         /// </summary>
         /// <param name="listeningPort">Listeningするポート。</param>
         /// <param name="useIpV6">falseの場合、127.0.0.1で待ち受ける。trueの場合、::1で待ち受ける。既定false。</param>
-        /// <param name="isSetIEProxySettings">trueの場合、プロセス内IEプロキシの設定を実施し、アップストリームプロキシにシステム設定プロキシを設定する。既定true。</param>
-        public static void Startup(int listeningPort, bool useIpV6 = false, bool isSetIEProxySettings = true)
+        /// <param name="isSetProxyInProcess">trueの場合、プロセス内IEプロキシの設定を実施し、HTTP通信をNekoxyに向ける。既定true。</param>
+        public static void Startup(int listeningPort, bool useIpV6 = false, bool isSetProxyInProcess = true)
         {
             if (server != null) throw new InvalidOperationException("Calling Startup() twice without calling Shutdown() is not permitted.");
 
             TransparentProxyLogic.AfterSessionComplete += InvokeAfterSessionComplete;
             TransparentProxyLogic.AfterReadRequestHeaders += InvokeAfterReadRequestHeaders;
             TransparentProxyLogic.AfterReadResponseHeaders += InvokeAfterReadResponseHeaders;
-            TransparentProxyLogic.IsUseSystemProxy = isSetIEProxySettings;
             ListeningPort = listeningPort;
             try
             {
-                if (isSetIEProxySettings)
-                    WinInetUtil.SetProxyInProcessByUrlmon(listeningPort);
+                if (isSetProxyInProcess)
+                    WinInetUtil.SetProxyInProcessForNekoxy(listeningPort);
 
                 server = new TcpServer(listeningPort, useIpV6);
                 server.Start(TransparentProxyLogic.CreateProxy);

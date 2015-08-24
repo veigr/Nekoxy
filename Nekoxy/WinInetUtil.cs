@@ -13,7 +13,7 @@ namespace Nekoxy
     public static class WinInetUtil
     {
         /// <summary>
-        /// urlmon.dllでプロセス内プロキシ設定を適用。
+        /// urlmon.dllを用いて、プロセス内プロキシ設定を適用。
         /// </summary>
         /// <param name="proxy">プロキシサーバー</param>
         /// <param name="proxyBypass">バイパスリスト</param>
@@ -30,10 +30,10 @@ namespace Nekoxy
         }
 
         /// <summary>
-        /// urlmon.dllでプロセス内プロキシ設定を適用。
+        /// urlmon.dllを用いて、システムプロキシのhttpプロキシ設定をNekoxyに置換したプロキシ設定をプロセス内プロキシ設定に適用。
         /// </summary>
         /// <param name="listeningPort">ポート</param>
-        internal static void SetProxyInProcessByUrlmon(int listeningPort)
+        public static void SetProxyInProcessForNekoxy(int listeningPort)
         {
             SetProxyInProcess(
                 GetProxyConfig(listeningPort),

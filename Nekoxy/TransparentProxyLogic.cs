@@ -32,25 +32,9 @@ namespace Nekoxy
         public static event Action<HttpResponse> AfterReadResponseHeaders;
 
         /// <summary>
-        /// アップストリームプロキシの指定を有効にする。既定値false。
-        /// trueの場合、IsUseSystemProxy を無視し、UpstreamProxyHost プロパティと UpstreamProxyPort プロパティをアップストリームプロキシに設定する。
+        /// 上流プロキシ設定。
         /// </summary>
-        public static bool IsEnableUpstreamProxy { get; set; }
-
-        /// <summary>
-        /// インスタンス初期化時にRelayHttpProxyHostに設定される値。
-        /// </summary>
-        public static string UpstreamProxyHost { get; set; }
-
-        /// <summary>
-        /// インスタンス初期化時にRelayHttpProxyPortに設定される値。
-        /// </summary>
-        public static int UpstreamProxyPort { get; set; }
-
-        /// <summary>
-        /// 上流にシステムプロキシを設定するかどうか。
-        /// </summary>
-        public static bool IsUseSystemProxy { get; set; } = true;
+        public static ProxyConfig UpstreamProxyConfig { get; set; } = new ProxyConfig(ProxyConfigType.SystemProxy);
 
         /// <summary>
         /// TcpServerがインスタンスを生成する際に使用するメソッド。
@@ -66,11 +50,7 @@ namespace Nekoxy
         /// 接続(AcceptCallback)の都度インスタンスが生成される。
         /// </summary>
         /// <param name="clientSocket">Browser-Proxy間Socket。SocketBP。</param>
-        public TransparentProxyLogic(HttpSocket clientSocket) : base(clientSocket)
-        {
-            this.RelayHttpProxyHost = IsEnableUpstreamProxy ? UpstreamProxyHost : null;
-            this.RelayHttpProxyPort = IsEnableUpstreamProxy ? UpstreamProxyPort : 80;
-        }
+        public TransparentProxyLogic(HttpSocket clientSocket) : base(clientSocket) { }
 
         /// <summary>
         /// クライアントからリクエストヘッダまで読み込み、サーバーアクセス前のタイミング。
@@ -78,8 +58,26 @@ namespace Nekoxy
         /// </summary>
         protected override void OnReceiveRequest()
         {
-            if (!IsUseSystemProxy || IsEnableUpstreamProxy) return;
+            this.SetUpstreamProxy();
+        }
 
+        private void SetUpstreamProxy()
+        {
+            this.RelayHttpProxyHost = null;
+            this.RelayHttpProxyPort = 80;
+
+            var config = UpstreamProxyConfig;
+
+            if (config.Type == ProxyConfigType.DirectAccess) return;
+
+            if (config.Type == ProxyConfigType.SpecificProxy)
+            {
+                this.RelayHttpProxyHost = string.IsNullOrWhiteSpace(config.SpecificProxyHost) ? null : config.SpecificProxyHost;
+                this.RelayHttpProxyPort = config.SpecificProxyPort;
+                return;
+            }
+
+            // システムプロキシ利用(既定)
             var requestUri = this.GetEffectiveRequestUri();
             if (requestUri != null)
             {
@@ -108,7 +106,11 @@ namespace Nekoxy
                 return new Uri(this.RequestLine.URI);
 
             int destinationPort;
+            var originalUri = this.RequestLine.URI;
+            // Parse とか言いながら RequestLine.URI の書き換えが発生する場合がある
+            // authority-form で RelayHttpProxyHost が null の場合に発生
             var destinationHost = this.ParseDestinationHostAndPort(this.RequestLine, this.RequestHeaders, out destinationPort);
+            this.RequestLine.URI = originalUri;
             var isDefaultPort = destinationPort == (this.RequestLine.Method == "CONNECT" ? 443 : 80);
 
             var scheme = this.RequestLine.Method == "CONNECT" ? "https" : "http";
