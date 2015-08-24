@@ -7,23 +7,19 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
 ### 機能
 
 * 指定ポートでローカルプロキシを1つ起動
-* 起動時にプロセス内プロキシ設定を適用可能 (デフォルト有効)
-    * HTTPプロトコルのみに適用する
-    * システムのプロキシ設定(インターネットオプションの設定)がある場合、それをアップストリームプロキシに適用
-        * WebRequest.GetSystemWebProxy().GetProxy() でリクエストURLに対応する接続先の解決を試みる
-        * 何らかの原因でHTTPリクエストからリクエストURLが取得できなかった場合、自動構成を諦め WinHttpGetIEProxyConfigForCurrentUser() のプロキシ設定を適用する
-    * システムのプロキシ設定に Nekoxy で待ち受けているプロキシが設定されている場合はアップストリームプロキシに適用せず、ダイレクトアクセスとなる
+* プロセス内プロキシ設定を適用可能
 * レスポンスデータをクライアントに送信後、AfterSessionComplete イベントを発行
 * AfterSessionComplete イベントにてリクエスト/レスポンスデータを読み取り可能
 * Transfer-Encoding: chunked なレスポンスデータは、TrotiNet を用いて予めデコードされる
 * Content-Encoding 指定のレスポンスデータは、TrotiNet を用いて予めデコードされる
 * アップストリームプロキシを設定可能
-    * 設定した場合、システムのプロキシ設定より優先して適用される
 
 
 ### 制限事項
 
-* HTTPにのみ対応し、HTTPS等には未対応
+* HTTP にのみ対応し、HTTPS 等には未対応
+    * HTTPS 読み書きは TrotiNet が非対応
+    * CONNECT による単なる中継もやや動作が怪しいため
 * 複数起動不可
 * Transfer-Encoding: chunked なリクエストの RequestBody の読み取りは未対応
     * ResponseBody には対応
@@ -40,21 +36,51 @@ Nekoxy は、[TrotiNet](http://trotinet.sourceforge.net/) を使用した簡易H
       これを回避するには、UpstreamProxyHost プロパティにホスト名ではなくIPアドレスで指定するといった手段が考えられる。
 
 
+### プロセス内プロキシ設定
+
+プロセス内のプロキシ設定を変更することで、システムのプロキシ設定を変更せずにプロセス内の通信を Nekoxy に向けることが出来るようになります。
+
+既定では、HttpProxy.StartUp() 時に HTTP プロトコルのみ Nekoxy に向け、他プロトコルはその時に設定されているシステムのプロキシ設定を用いるよう適用します。  
+isSetProxyInProcess 引数に false を指定した場合は適用されません。
+
+HTTPプロトコル : client -> Nekoxy  
+他プロトコル : client -> IE Settings Proxy
+
+
+##### Nekoxy.WinInetUtil.SetProxyInProcessForNekoxy()
+
+HttpProxy.StartUp() 時に用いているメソッドです。  
+Nekoxy のポート番号を指定し、HTTP プロトコルのみ Nekoxy に向けるようプロセス内のプロキシ設定を変更します。
+
+HTTP プロトコル以外はシステムのプロキシ設定を参照しますが、メソッド実行時の値が設定されるだけであり、リアルタイムには反映されない点に注意が必要です。
+
+
+#### Nekoxy.WinInetUtil.SetProxyInProcess()
+
+プロキシ設定とバイパスリストを指定して、プロセス内プロキシ設定を変更します。
+
+e.g. `WinInetUtil.SetProxyInProcess("http=127.0.0.1:8888;https=127.0.0.1:8888", "local");`
+
+
 ### アップストリームプロキシ設定
 
-* IE設定をアップストリームに設定したい場合
-    * HttpProxy.Startup() の　isSetIEProxySettings パラメータを true に設定する
-* 指定のアップストリームプロキシを利用したい場合
-    * HttpProxy.IsEnableUpstreamProxy プロパティを true にし、UpstreamProxyHost プロパティ、UpstreamProxyPort プロパティを設定する
+HttpProxy.UpstreamProxyConfig を用いることで、Nekoxy を通った通信の上流プロキシを設定できます。
+既定では、システムのプロキシ設定が適用されます。
 
-| 既定 | isSetIEProxySettings | IsEnableUpstreamProxy | UpstreamProxyHost | 経路 |
-|:---: | :------------------: | :-------------------: | :---------------: | ---- |
-| ○ | true  | false | 任意 | client -> Nekoxy -> IE Settings Proxy -> Server |
-|   | false | false | 任意 | client -> Nekoxy -> Server |
-|   | false | true  | 指定 | client -> Nekoxy -> Upstream Proxy -> Server |
-|   | true  | true  | 指定 | client -> Nekoxy -> Upstream Proxy -> Server |
-|   | false | true  | null | client -> Nekoxy -> Server |
-|   | true  | true  | null | client -> Nekoxy -> Server |
+
+##### Type プロパティの設定
+
+* SystemProxy : システムのプロキシ設定を使用
+    * WebRequest.GetSystemWebProxy().GetProxy() でリクエストURLに対応する接続先の解決を試みる
+        * 自動構成も適用される
+        * プロセス内プロキシ設定と異なり、リアルタイム反映
+    * 何らかの原因でHTTPリクエストからリクエストURLが取得できなかった場合、自動構成を諦め WinHttpGetIEProxyConfigForCurrentUser() のプロキシ設定を適用する
+    * システムのプロキシ設定に Nekoxy で待ち受けているプロキシが設定されている場合はアップストリームプロキシに適用せず、ダイレクトアクセスとなる
+* SpecificProxy : 指定の上流プロキシを使用
+    * SpecificProxyHost プロパティと SpecificProxyPort プロパティで指定された上流プロキシを用いる
+    * SpecificProxyHost プロパティが空の場合はダイレクトアクセスとなる
+* DirectAccess : ダイレクトアクセスを使用
+    * 上流プロキシを用いず、直接サーバーと通信
 
 
 ### 取得
@@ -87,6 +113,10 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 
 
 ### 更新履歴
+
+#### 1.5.0
+
+* [破壊的変更] アップストリームプロキシの指定方法を変更
 
 #### 1.4.0
 
