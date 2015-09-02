@@ -100,9 +100,12 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 ### TrotiNet について
 
 * Nekoxy は、TrotiNet を同梱し頒布しています。
-* TrotiNetに改変は加えていません。
-* TrotiNetはGNU Lesser General Public License v3.0で保護されています。
-* 利用しているTrotiNetのソースは、TrotiNet-Srcフォルダに添付されています。
+* TrotiNet に若干の修正を施しています。
+    * 修正元 commit : 4e3dd17ecebcf6cd94dbd335b6a9df6103143e2a
+    * keep-alive 時、HTTP リクエストを中継する際にサーバー側コネクションがタイムアウトにより CLOSE_WAIT になっていると、クライアント側コネクションも破棄され HTTP リクエストが失敗する問題を修正
+    * 一部の無視されている例外を WARN レベルログに出力するよう変更
+* TrotiNet は GNU Lesser General Public License v3.0 で保護されています。
+* 利用している TrotiNet のソースは、TrotiNet-Src フォルダに添付されています。
 * GNU GENERAL PUBLIC LICENSE Version 3 および GNU LESSER GENERAL PUBLIC LICENSE Version 3 のライセンス文書のコピーは、TrotiNet-Src フォルダに添付されています。
 
 
@@ -113,6 +116,12 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 
 
 ### 更新履歴
+
+#### 1.5.1
+
+* TrotiNet を修正
+    * keep-alive 時に HTTP リクエスト送信が失敗する場合がある問題を修正
+    * 一部の無視されている例外を WARN レベルログに出力するよう変更
 
 #### 1.5.0
 
