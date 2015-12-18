@@ -48,6 +48,7 @@
     <Compile Include="HttpProxy.cs" />
     <Compile Include="HttpRequest.cs" />
     <Compile Include="HttpResponse.cs" />
+    <Compile Include="NekoxyTcpServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyConfig.cs" />
     <Compile Include="ProxyConfigType.cs" />

@@ -12,7 +12,7 @@ namespace Nekoxy
     /// </summary>
     public static class HttpProxy
     {
-        private static TcpServer server;
+        private static NekoxyTcpServer server;
 
         /// <summary>
         /// HTTPレスポンスをプロキシ クライアントに送信完了した際に発生。
@@ -65,7 +65,7 @@ namespace Nekoxy
                 if (isSetProxyInProcess)
                     WinInetUtil.SetProxyInProcessForNekoxy(listeningPort);
 
-                server = new TcpServer(listeningPort, useIpV6);
+                server = new NekoxyTcpServer(listeningPort, useIpV6);
                 server.Start(TransparentProxyLogic.CreateProxy);
                 server.InitListenFinished.WaitOne();
                 if (server.InitListenException != null) throw server.InitListenException;
@@ -85,7 +85,7 @@ namespace Nekoxy
             TransparentProxyLogic.AfterSessionComplete -= InvokeAfterSessionComplete;
             TransparentProxyLogic.AfterReadRequestHeaders -= InvokeAfterReadRequestHeaders;
             TransparentProxyLogic.AfterReadResponseHeaders -= InvokeAfterReadResponseHeaders;
-            server?.Stop();
+            server?.Shutdown();
             server = null;
         }
 
