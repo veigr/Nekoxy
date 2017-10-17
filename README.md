@@ -117,6 +117,10 @@ log4net は Apache License, Version 2.0([https://www.apache.org/licenses/LICENSE
 
 ### 更新履歴
 
+#### 1.5.3
+
+* `osapi.dmm.com` が、2017-10-17 の DMM メンテナンス移行 HTTP リクエスト送信時に CRLF を分割した TCP パケットとして送信した場合に応答しなくなってしまった問題を修正
+
 #### 1.5.2
 
 * HttpProxy.Shutdown() を呼んでも Keep-Alive なコネクションが閉じられず残ってしまう問題を修正

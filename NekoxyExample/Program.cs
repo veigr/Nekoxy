@@ -12,7 +12,7 @@ namespace NekoxyExample
         private static void Main(string[] args)
         {
             HttpProxy.Shutdown();
-            HttpProxy.UpstreamProxyConfig = new ProxyConfig(ProxyConfigType.SpecificProxy, "127.0.0.1", 8888);
+            //HttpProxy.UpstreamProxyConfig = new ProxyConfig(ProxyConfigType.SpecificProxy, "127.0.0.1", 8888);
             HttpProxy.Startup(12345, false, false);
             HttpProxy.AfterReadRequestHeaders += r => Task.Run(() => Console.WriteLine(r));
             HttpProxy.AfterReadResponseHeaders += r => Task.Run(() => Console.WriteLine(r));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using TrotiNet;
 
@@ -130,10 +131,9 @@ namespace Nekoxy
 
             this.currentSession = new Session();
 
-            //HTTPメソッド送信
-            this.SocketPS.WriteAsciiLine(this.RequestLine.RequestLine);
             //HTTPリクエストヘッダ送信
-            this.SocketPS.WriteAsciiLine(this.RequestHeaders.HeadersInOrder);
+            this.SocketPS.WriteBinary(Encoding.ASCII.GetBytes(
+                $"{this.RequestLine.RequestLine}\r\n{this.RequestHeaders.HeadersInOrder}\r\n"));
 
             byte[] request = null;
             if (this.State.bRequestHasMessage)
